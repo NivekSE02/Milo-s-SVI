@@ -1,0 +1,70 @@
+@page "/login"
+@rendermode InteractiveServer
+@inject AuthService AuthService
+@inject NavigationManager Nav
+@inject AuthState AuthState
+
+<div class="login-container">
+    <div class="login-card">
+
+        <h2>Bienvenido</h2>
+        <p class="subtitle">Inicia sesión</p>
+
+        <input @bind="correo" placeholder="Correo electrónico" class="form-input" />
+        <input @bind="password" type="password" placeholder="Contraseña" class="form-input" />
+
+        <button type="button" class="btn-login" @onclick="IniciarSesion">Entrar</button>
+
+        @if (error != null)
+        {
+            <p class="error">@error</p>
+        }
+
+    </div>
+</div>
+
+@code {
+    string correo = "";
+    string password = "";
+    string error;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && AuthState.IsAuthenticated)
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+
+    async Task IniciarSesion()
+    {
+        error = null;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(password))
+            {
+                error = "Correo y contraseña son requeridos";
+                StateHasChanged();
+                return;
+            }
+
+            var user = await AuthService.Login(correo.Trim(), password.Trim());
+
+            if (user == null)
+            {
+                error = "Credenciales incorrectas";
+                StateHasChanged();
+                return;
+            }
+
+            AuthState.IsAuthenticated = true;
+            AuthState.CurrentUser = user;
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            error = "ERROR: " + ex.Message;
+            StateHasChanged();
+        }
+    }
+}

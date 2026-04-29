@@ -1,0 +1,1 @@
+public record LoginDto(string Correo, string Password);
