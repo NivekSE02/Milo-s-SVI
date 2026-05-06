@@ -1,8 +1,116 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Inicio — Milo's SVI</PageTitle>
 
-<h1>Hello, world!</h1>
+<div style="padding: 1.5rem 0;">
 
-Welcome to your new app.
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
+        <div>
+            <h1 style="font-size:18px; font-weight:500; margin:0;">Panel de ventas</h1>
+            <p style="font-size:13px; color:#888; margin:2px 0 0;">Mayo 2026</p>
+        </div>
+        <span style="background:#d1fae5; color:#065f46; font-size:12px; padding:4px 10px; border-radius:6px;">● Activo</span>
+    </div>
+
+    <!-- Métricas -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:1.5rem;">
+        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
+            <div style="font-size:12px; color:#888; margin-bottom:6px;">💰 Ventas hoy</div>
+            <div style="font-size:22px; font-weight:500;">$4,820</div>
+            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 12% vs ayer</div>
+        </div>
+        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
+            <div style="font-size:12px; color:#888; margin-bottom:6px;">🧾 Órdenes</div>
+            <div style="font-size:22px; font-weight:500;">38</div>
+            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 5 más que ayer</div>
+        </div>
+        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
+            <div style="font-size:12px; color:#888; margin-bottom:6px;">👥 Clientes</div>
+            <div style="font-size:22px; font-weight:500;">214</div>
+            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 8 nuevos</div>
+        </div>
+        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
+            <div style="font-size:12px; color:#888; margin-bottom:6px;">📦 Productos</div>
+            <div style="font-size:22px; font-weight:500;">132</div>
+            <div style="font-size:11px; color:#dc2626; margin-top:4px;">↓ 3 sin stock</div>
+        </div>
+    </div>
+
+    <!-- Ventas recientes + Categorías -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.5rem;">
+        <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
+            <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Ventas recientes</div>
+            @foreach (var v in ventas)
+            {
+                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid #f0f0f0;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#1d4ed8;">@v.Iniciales</div>
+                    <div>
+                        <div style="font-size:13px;">@v.Nombre</div>
+                        <div style="font-size:11px;color:#888;">@v.Hace</div>
+                    </div>
+                    <div style="margin-left:auto;font-size:13px;font-weight:500;">@v.Monto</div>
+                </div>
+            }
+        </div>
+
+        <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
+            <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Top categorías</div>
+            @foreach (var c in categorias)
+            {
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <span style="font-size:12px;color:#888;width:70px;">@c.Nombre</span>
+                    <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+                        <div style="height:100%;width:@(c.Pct)%;background:@c.Color;border-radius:3px;"></div>
+                    </div>
+                    <span style="font-size:12px;color:#888;width:36px;text-align:right;">@(c.Pct)%</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Inventario crítico -->
+    <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
+        <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Inventario crítico</div>
+        @foreach (var i in inventario)
+        {
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;">
+                <span style="width:7px;height:7px;border-radius:50%;background:@i.DotColor;display:inline-block;"></span>
+                <span style="flex:1;">@i.Nombre</span>
+                <span style="font-size:12px;padding:2px 8px;border-radius:6px;background:@i.BadgeBg;color:@i.BadgeColor;">@i.Stock unid.</span>
+                <span style="font-size:12px;color:#888;width:50px;text-align:right;">@i.Estado</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    record Venta(string Iniciales, string Nombre, string Hace, string Monto);
+    record Categoria(string Nombre, int Pct, string Color);
+    record Inventario(string Nombre, int Stock, string Estado, string DotColor, string BadgeBg, string BadgeColor);
+
+    List<Venta> ventas = new()
+    {
+        new("CR","Carlos R.","hace 10 min","$320"),
+        new("LM","Laura M.","hace 25 min","$185"),
+        new("JP","José P.","hace 1 hora","$540"),
+        new("AV","Ana V.","hace 2 horas","$97"),
+    };
+
+    List<Categoria> categorias = new()
+    {
+        new("Electrónica", 82, "#378ADD"),
+        new("Ropa",        61, "#1D9E75"),
+        new("Hogar",       45, "#EF9F27"),
+        new("Alimentos",   30, "#D4537E"),
+        new("Otros",       18, "#888780"),
+    };
+
+    List<Inventario> inventario = new()
+    {
+        new("Audífonos Bluetooth XZ2", 2,  "Sin stock", "#dc2626", "#fef3c7","#92400e"),
+        new("Cable HDMI 2m",           8,  "Bajo",      "#f59e0b", "#dbeafe","#1e40af"),
+        new("Teclado mecánico RGB",    5,  "Bajo",      "#f59e0b", "#dbeafe","#1e40af"),
+        new("Monitor 24\" Full HD",    47, "OK",        "#16a34a", "#d1fae5","#065f46"),
+    };
+}
