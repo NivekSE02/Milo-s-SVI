@@ -1,0 +1,12 @@
+﻿@inject NavigationManager Nav
+
+@code {
+    [Parameter, EditorRequired]
+    public string To { get; set; } = default!;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            Nav.NavigateTo(To, replace: true);
+    }
+}

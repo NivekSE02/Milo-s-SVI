@@ -1,0 +1,62 @@
+﻿@implements IDisposable
+@inject AuthState AuthState
+@inject NavigationManager Nav
+
+@if (_allowed)
+{
+    <RouteView RouteData="RouteData" DefaultLayout="typeof(Layout.MainLayout)" />
+}
+else if (_redirectTo != null)
+{
+    <Redirect To="@_redirectTo" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public RouteData RouteData { get; set; } = default!;
+
+    bool _allowed = false;
+    string? _redirectTo = null;
+
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+    }
+
+
+    protected override void OnParametersSet()
+    {
+        _allowed = false;
+        _redirectTo = null;
+
+        var path = Nav.ToBaseRelativePath(Nav.Uri)
+                      .TrimStart('/')
+                      .ToLowerInvariant()
+                      .Split('?')[0];
+
+        var publicPaths = new[] { "login", "error", "dbstatus" };
+        bool isPublic = Array.Exists(publicPaths, p => path == p)
+                     || path.StartsWith("_framework")
+                     || path.StartsWith("_content");
+
+        if (isPublic)
+        {
+            if (path == "login" && AuthState.IsAuthenticated)
+                _redirectTo = "/";
+            else
+                _allowed = true;
+        }
+        else
+        {
+            if (!AuthState.IsAuthenticated)
+                _redirectTo = "/login";
+            else
+                _allowed = true;
+        }
+    }
+}

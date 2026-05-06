@@ -1,49 +1,163 @@
 @page "/login"
 @rendermode InteractiveServer
+@layout Milos.Components.Layout.EmptyLayout
 @inject AuthService AuthService
 @inject NavigationManager Nav
 @inject AuthState AuthState
 
-<div class="login-container">
-    <div class="login-card">
+<div style="
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+">
+    <div style="
+        width: 100%;
+        max-width: 450px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        padding: 50px 40px;
+    ">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="
+                color: #667eea;
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 10px;
+                margin-top: 0;
+            ">
+                Milo's SVI
+            </h1>
+        </div>
 
-        <h2>Bienvenido</h2>
-        <p class="subtitle">Inicia sesión</p>
-
-        <input @bind="correo" placeholder="Correo electrónico" class="form-input" />
-        <input @bind="password" type="password" placeholder="Contraseña" class="form-input" />
-
-        <button type="button" class="btn-login" @onclick="IniciarSesion">Entrar</button>
+        <p style="
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-align: center;
+        ">Inicia sesión en tu cuenta</p>
 
         @if (error != null)
         {
-           <p class="error">@error</p>
+            <div style="
+                    color: #e74c3c;
+                    background-color: #fadbd8;
+                    border: 1px solid #e74c3c;
+                    padding: 12px 15px;
+                    border-radius: 6px;
+                    margin-bottom: 20px;
+                    font-size: 14px;
+                ">
+                @error
+            </div>
         }
 
+        <div>
+            <div style="margin-bottom: 20px;">
+                <label for="correo" style="
+                    display: block;
+                    margin-bottom: 8px;
+                    color: #333;
+                    font-weight: 600;
+                    font-size: 14px;
+                ">Correo Electrónico</label>
+                <input type="email"
+                       id="correo"
+                       @bind="correo"
+                       placeholder="tu@email.com"
+                       required
+                       style="
+                        width: 100%;
+                        padding: 12px 15px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        transition: all 0.3s ease;
+                    " />
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="password" style="
+                    display: block;
+                    margin-bottom: 8px;
+                    color: #333;
+                    font-weight: 600;
+                    font-size: 14px;
+                ">Contraseña</label>
+                <input type="password"
+                       id="password"
+                       @bind="password"
+                       placeholder="••••••••"
+                       required
+                       style="
+                        width: 100%;
+                        padding: 12px 15px;
+                        border: 2px solid #e0e0e0;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        transition: all 0.3s ease;
+                    " />
+            </div>
+
+            <button type="button"
+                    @onclick="IniciarSesion"
+                    disabled="@isLoading"
+                    style="
+                    width: 100%;
+                    padding: 12px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: @(isLoading ? "not-allowed" : "pointer");
+                    transition: all 0.3s ease;
+                    margin-top: 10px;
+                    opacity: @(isLoading ? 0.7 : 1);
+                ">
+                @(isLoading ? "Ingresando..." : "Entrar")
+            </button>
+        </div>
     </div>
 </div>
 
 @code {
+
+
     string correo = "";
     string password = "";
-    string error;
+    string? error;
+    bool isLoading = false;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender && AuthState.IsAuthenticated)
-        {
-            Nav.NavigateTo("/");
-        }
+      
+        if (AuthState.IsAuthenticated)
+            Nav.NavigateTo("/", replace: true);
     }
 
     async Task IniciarSesion()
     {
+
+        Console.WriteLine("CLICK");
         error = null;
+        isLoading = true;
+        StateHasChanged();
+
         try
         {
             if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(password))
             {
                 error = "Correo y contraseña son requeridos";
+                isLoading = false;
                 StateHasChanged();
                 return;
             }
@@ -53,17 +167,20 @@
             if (user == null)
             {
                 error = "Credenciales incorrectas";
+                isLoading = false;
                 StateHasChanged();
                 return;
             }
 
-            AuthState.IsAuthenticated = true;
-            AuthState.CurrentUser = user;
-            Nav.NavigateTo("/");
+            AuthState.Login(user);
+
+            // Force full page load to avoid circuit/mode mismatch
+            Nav.NavigateTo("/", forceLoad: true);
         }
         catch (Exception ex)
         {
             error = "ERROR: " + ex.Message;
+            isLoading = false;
             StateHasChanged();
         }
     }

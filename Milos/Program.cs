@@ -14,7 +14,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<AuthState>();
+// AuthState must be singleton so it survives circuit reloads
+builder.Services.AddSingleton<AuthState>();
 
 var app = builder.Build();
 
