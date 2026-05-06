@@ -1,116 +1,229 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@inject AppDbContext Db
+@inject AuthState AuthState
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>Inicio — Milo's SVI</PageTitle>
 
-<div style="padding: 1.5rem 0;">
-
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
-        <div>
-            <h1 style="font-size:18px; font-weight:500; margin:0;">Panel de ventas</h1>
-            <p style="font-size:13px; color:#888; margin:2px 0 0;">Mayo 2026</p>
-        </div>
-        <span style="background:#d1fae5; color:#065f46; font-size:12px; padding:4px 10px; border-radius:6px;">● Activo</span>
+@if (cargando)
+{
+    <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:#888;font-size:14px;">
+        Cargando datos...
     </div>
+}
+else
+{
+    <div style="padding:1.5rem 0;">
 
-    <!-- Métricas -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:1.5rem;">
-        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
-            <div style="font-size:12px; color:#888; margin-bottom:6px;">💰 Ventas hoy</div>
-            <div style="font-size:22px; font-weight:500;">$4,820</div>
-            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 12% vs ayer</div>
-        </div>
-        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
-            <div style="font-size:12px; color:#888; margin-bottom:6px;">🧾 Órdenes</div>
-            <div style="font-size:22px; font-weight:500;">38</div>
-            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 5 más que ayer</div>
-        </div>
-        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
-            <div style="font-size:12px; color:#888; margin-bottom:6px;">👥 Clientes</div>
-            <div style="font-size:22px; font-weight:500;">214</div>
-            <div style="font-size:11px; color:#16a34a; margin-top:4px;">↑ 8 nuevos</div>
-        </div>
-        <div style="background:#f5f5f3; border-radius:8px; padding:1rem;">
-            <div style="font-size:12px; color:#888; margin-bottom:6px;">📦 Productos</div>
-            <div style="font-size:22px; font-weight:500;">132</div>
-            <div style="font-size:11px; color:#dc2626; margin-top:4px;">↓ 3 sin stock</div>
-        </div>
-    </div>
-
-    <!-- Ventas recientes + Categorías -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:1.5rem;">
-        <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
-            <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Ventas recientes</div>
-            @foreach (var v in ventas)
-            {
-                <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid #f0f0f0;">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#1d4ed8;">@v.Iniciales</div>
-                    <div>
-                        <div style="font-size:13px;">@v.Nombre</div>
-                        <div style="font-size:11px;color:#888;">@v.Hace</div>
-                    </div>
-                    <div style="margin-left:auto;font-size:13px;font-weight:500;">@v.Monto</div>
-                </div>
-            }
-        </div>
-
-        <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
-            <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Top categorías</div>
-            @foreach (var c in categorias)
-            {
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                    <span style="font-size:12px;color:#888;width:70px;">@c.Nombre</span>
-                    <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                        <div style="height:100%;width:@(c.Pct)%;background:@c.Color;border-radius:3px;"></div>
-                    </div>
-                    <span style="font-size:12px;color:#888;width:36px;text-align:right;">@(c.Pct)%</span>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Inventario crítico -->
-    <div style="border:0.5px solid #e5e5e5; border-radius:12px; padding:1rem 1.25rem;">
-        <div style="font-size:12px; font-weight:500; color:#888; text-transform:uppercase; letter-spacing:.04em; margin-bottom:1rem;">Inventario crítico</div>
-        @foreach (var i in inventario)
-        {
-            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;">
-                <span style="width:7px;height:7px;border-radius:50%;background:@i.DotColor;display:inline-block;"></span>
-                <span style="flex:1;">@i.Nombre</span>
-                <span style="font-size:12px;padding:2px 8px;border-radius:6px;background:@i.BadgeBg;color:@i.BadgeColor;">@i.Stock unid.</span>
-                <span style="font-size:12px;color:#888;width:50px;text-align:right;">@i.Estado</span>
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+            <div>
+                <h1 style="font-size:18px;font-weight:500;margin:0;">Panel de ventas</h1>
+                <p style="font-size:13px;color:#888;margin:2px 0 0;">@DateTime.Now.ToString("MMMM yyyy")</p>
             </div>
-        }
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;color:#888;">Hola, @AuthState.CurrentUser?.Nombre</span>
+                <span style="background:#d1fae5;color:#065f46;font-size:12px;padding:4px 10px;border-radius:6px;">● Activo</span>
+            </div>
+        </div>
+
+        <!-- Métricas -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem;">
+            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
+                <div style="font-size:12px;color:#888;margin-bottom:6px;">💰 Ventas hoy</div>
+                <div style="font-size:22px;font-weight:500;">$@ventasHoy.ToString("N2")</div>
+                <div style="font-size:11px;margin-top:4px;color:@(deltaVentas >= 0 ? "#16a34a" : "#dc2626");">
+                    @(deltaVentas >= 0 ? "↑" : "↓") @Math.Abs(deltaVentas).ToString("N2") vs ayer
+                </div>
+            </div>
+            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
+                <div style="font-size:12px;color:#888;margin-bottom:6px;">🧾 Órdenes hoy</div>
+                <div style="font-size:22px;font-weight:500;">@ordenesHoy</div>
+                <div style="font-size:11px;margin-top:4px;color:@(deltaOrdenes >= 0 ? "#16a34a" : "#dc2626");">
+                    @(deltaOrdenes >= 0 ? "↑" : "↓") @Math.Abs(deltaOrdenes) vs ayer
+                </div>
+            </div>
+            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
+                <div style="font-size:12px;color:#888;margin-bottom:6px;">📦 Productos</div>
+                <div style="font-size:22px;font-weight:500;">@totalProductos</div>
+                <div style="font-size:11px;color:#dc2626;margin-top:4px;">↓ @productosSinStock sin stock</div>
+            </div>
+            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
+                <div style="font-size:12px;color:#888;margin-bottom:6px;">📂 Categorías</div>
+                <div style="font-size:22px;font-weight:500;">@totalCategorias</div>
+                <div style="font-size:11px;color:#888;margin-top:4px;">activas</div>
+            </div>
+        </div>
+
+        <!-- Ventas recientes + Stock bajo -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;">
+
+            <!-- Ventas recientes -->
+            <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
+                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Ventas recientes</div>
+                @if (ventasRecientes.Count == 0)
+                {
+                    <div style="font-size:13px;color:#aaa;padding:1rem 0;">No hay ventas hoy.</div>
+                }
+                @foreach (var v in ventasRecientes)
+                {
+                    var iniciales = v.Usuario != null
+                    ? $"{v.Usuario.Nombre?[..1]}{v.Usuario.Apellido?[..1]}"
+                    : "??";
+                    var nombre = v.Usuario != null
+                    ? $"{v.Usuario.Nombre} {v.Usuario.Apellido}"
+                    : "Desconocido";
+                    var hace = FormatHace(v.FechaPedido);
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#1d4ed8;">@iniciales</div>
+                        <div>
+                            <div style="font-size:13px;">@nombre</div>
+                            <div style="font-size:11px;color:#888;">@hace</div>
+                        </div>
+                        <div style="margin-left:auto;font-size:13px;font-weight:500;">$@v.Total.ToString("N2")</div>
+                    </div>
+                }
+            </div>
+
+            <!-- Top categorías por ventas -->
+            <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
+                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Ventas por categoría</div>
+                @if (topCategorias.Count == 0)
+                {
+                    <div style="font-size:13px;color:#aaa;padding:1rem 0;">Sin datos aún.</div>
+                }
+                @{
+                    var maxCat = topCategorias.Count > 0 ? topCategorias.Max(c => c.Total) : 1;
+                    string[] colores = { "#378ADD", "#1D9E75", "#EF9F27", "#D4537E", "#888780" };
+                }
+                @for (int i = 0; i < topCategorias.Count; i++)
+                {
+                    var cat = topCategorias[i];
+                    var pct = maxCat > 0 ? (int)(cat.Total / maxCat * 100) : 0;
+                    var color = colores[i % colores.Length];
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <span style="font-size:12px;color:#888;width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@cat.Nombre</span>
+                        <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:@(pct)%;background:@color;border-radius:3px;"></div>
+                        </div>
+                        <span style="font-size:12px;color:#888;width:50px;text-align:right;">$@cat.Total.ToString("N0")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Inventario crítico -->
+        <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
+            <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Inventario crítico</div>
+            @if (inventarioCritico.Count == 0)
+            {
+                <div style="font-size:13px;color:#16a34a;padding:0.5rem 0;">✓ Todo el inventario está en niveles normales.</div>
+            }
+            @foreach (var p in inventarioCritico)
+            {
+                var dotColor = p.Stock == 0 ? "#dc2626" : "#f59e0b";
+                var badgeBg = p.Stock == 0 ? "#fef3c7" : "#dbeafe";
+                var badgeColor = p.Stock == 0 ? "#92400e" : "#1e40af";
+                var estado = p.Stock == 0 ? "Sin stock" : "Bajo";
+                <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;">
+                    <span style="width:7px;height:7px;border-radius:50%;background:@dotColor;display:inline-block;"></span>
+                    <span style="flex:1;">@p.Nombre</span>
+                    <span style="font-size:12px;padding:2px 8px;border-radius:6px;background:@badgeBg;color:@badgeColor;">@p.Stock unid.</span>
+                    <span style="font-size:12px;color:#888;width:60px;text-align:right;">@estado</span>
+                </div>
+            }
+        </div>
+
     </div>
-</div>
+}
 
 @code {
-    record Venta(string Iniciales, string Nombre, string Hace, string Monto);
-    record Categoria(string Nombre, int Pct, string Color);
-    record Inventario(string Nombre, int Stock, string Estado, string DotColor, string BadgeBg, string BadgeColor);
+    bool cargando = true;
 
-    List<Venta> ventas = new()
-    {
-        new("CR","Carlos R.","hace 10 min","$320"),
-        new("LM","Laura M.","hace 25 min","$185"),
-        new("JP","José P.","hace 1 hora","$540"),
-        new("AV","Ana V.","hace 2 horas","$97"),
-    };
+    decimal ventasHoy;
+    decimal ventasAyer;
+    decimal deltaVentas;
+    int ordenesHoy;
+    int ordenesAyer;
+    int deltaOrdenes;
+    int totalProductos;
+    int productosSinStock;
+    int totalCategorias;
 
-    List<Categoria> categorias = new()
-    {
-        new("Electrónica", 82, "#378ADD"),
-        new("Ropa",        61, "#1D9E75"),
-        new("Hogar",       45, "#EF9F27"),
-        new("Alimentos",   30, "#D4537E"),
-        new("Otros",       18, "#888780"),
-    };
+    List<Venta> ventasRecientes = new();
+    List<Producto> inventarioCritico = new();
 
-    List<Inventario> inventario = new()
+    record CatTotal(string Nombre, decimal Total);
+    List<CatTotal> topCategorias = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        new("Audífonos Bluetooth XZ2", 2,  "Sin stock", "#dc2626", "#fef3c7","#92400e"),
-        new("Cable HDMI 2m",           8,  "Bajo",      "#f59e0b", "#dbeafe","#1e40af"),
-        new("Teclado mecánico RGB",    5,  "Bajo",      "#f59e0b", "#dbeafe","#1e40af"),
-        new("Monitor 24\" Full HD",    47, "OK",        "#16a34a", "#d1fae5","#065f46"),
-    };
+        var hoy = DateTime.Today;
+        var ayer = hoy.AddDays(-1);
+
+        // Ventas hoy / ayer
+        ventasHoy = await Db.Ventas
+            .Where(v => v.FechaPedido >= hoy)
+            .SumAsync(v => (decimal?)v.Total) ?? 0;
+
+        ventasAyer = await Db.Ventas
+            .Where(v => v.FechaPedido >= ayer && v.FechaPedido < hoy)
+            .SumAsync(v => (decimal?)v.Total) ?? 0;
+
+        deltaVentas = ventasHoy - ventasAyer;
+
+        // Órdenes hoy / ayer
+        ordenesHoy = await Db.Ventas.CountAsync(v => v.FechaPedido >= hoy);
+        ordenesAyer = await Db.Ventas.CountAsync(v => v.FechaPedido >= ayer && v.FechaPedido < hoy);
+        deltaOrdenes = ordenesHoy - ordenesAyer;
+
+        // Productos
+        totalProductos = await Db.Productos.CountAsync();
+        productosSinStock = await Db.Productos.CountAsync(p => p.Stock == 0);
+        totalCategorias = await Db.Categorias.CountAsync();
+
+        // Ventas recientes (últimas 5)
+        ventasRecientes = await Db.Ventas
+            .Include(v => v.Usuario)
+            .OrderByDescending(v => v.FechaPedido)
+            .Take(5)
+            .ToListAsync();
+
+        // Inventario crítico (stock <= 10)
+        inventarioCritico = await Db.Productos
+            .Where(p => p.Stock <= 10)
+            .OrderBy(p => p.Stock)
+            .Take(8)
+            .ToListAsync();
+
+        // Top categorías por total vendido
+        // Top categorías por total vendido
+        topCategorias = await Db.DetallesVenta
+            .Join(Db.Productos,
+                d => d.IdProducto,
+                p => p.IdProducto,
+                (d, p) => new { d.Subtotal, p.IdCategoria })
+            .Join(Db.Categorias,
+                d => d.IdCategoria,
+                c => c.IdCategoria,
+                (d, c) => new { d.Subtotal, c.NombreCategoria })
+            .GroupBy(x => x.NombreCategoria)
+            .Select(g => new { Nombre = g.Key, Total = g.Sum(x => x.Subtotal) })
+            .OrderByDescending(x => x.Total)
+            .Take(5)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.Select(x => new CatTotal(x.Nombre, x.Total)).ToList());
+
+        cargando = false;
+    }
+
+    string FormatHace(DateTime fecha)
+    {
+        var diff = DateTime.Now - fecha;
+        if (diff.TotalMinutes < 1) return "ahora";
+        if (diff.TotalMinutes < 60) return $"hace {(int)diff.TotalMinutes} min";
+        if (diff.TotalHours < 24) return $"hace {(int)diff.TotalHours} h";
+        return fecha.ToString("dd/MM/yyyy");
+    }
 }

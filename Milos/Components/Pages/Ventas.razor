@@ -1,0 +1,356 @@
+﻿@page "/ventas"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@inject AuthState AuthState
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Ventas — Milo's SVI</PageTitle>
+
+<!-- Modal venta completada -->
+@if (mostrarExito)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:380px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:1rem;">✅</div>
+            <h2 style="font-size:18px;font-weight:500;margin:0 0 0.5rem;">¡Venta registrada!</h2>
+            <p style="font-size:13px;color:#888;margin:0 0 0.25rem;">Total cobrado</p>
+            <p style="font-size:28px;font-weight:600;color:#16a34a;margin:0 0 1.5rem;">$@ultimoTotal.ToString("N2")</p>
+            @if (metodoPago == "Efectivo" && cambio > 0)
+            {
+                <div style="background:#f0fdf4;border-radius:8px;padding:12px;margin-bottom:1.5rem;">
+                    <p style="font-size:13px;color:#888;margin:0 0 4px;">Cambio a entregar</p>
+                    <p style="font-size:22px;font-weight:600;color:#16a34a;margin:0;">$@cambio.ToString("N2")</p>
+                </div>
+            }
+            <button @onclick="NuevaVenta" style="width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;font-weight:500;cursor:pointer;">
+                Nueva venta
+            </button>
+        </div>
+    </div>
+}
+
+<div style="padding:1.5rem 0;">
+
+    <div style="margin-bottom:1.5rem;">
+        <h1 style="font-size:18px;font-weight:500;margin:0;">Nueva venta</h1>
+        <p style="font-size:13px;color:#888;margin:2px 0 0;">@DateTime.Now.ToString("dddd, dd 'de' MMMM yyyy")</p>
+    </div>
+
+    @if (errorGeneral != null)
+    {
+        <div style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:1rem;">@errorGeneral</div>
+    }
+
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
+
+        <!-- Panel izquierdo: buscar y agregar productos -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+            <!-- Buscador -->
+            <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Agregar producto</div>
+
+                <input @bind="busqueda" @bind:event="oninput" @bind:after="BuscarProductos"
+                       placeholder="Escribe el nombre del producto..."
+                       style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;box-sizing:border-box;" />
+
+                @if (resultadosBusqueda.Count > 0)
+                {
+                    <div style="margin-top:8px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;">
+                        @foreach (var p in resultadosBusqueda)
+                        {
+                            var agotado = p.Stock == 0;
+                            <div @onclick="() => { if (!agotado) AgregarProducto(p); }"
+                                 style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #f0f0f0;cursor:@(agotado ? "not-allowed" : "pointer");background:@(agotado ? "#fafafa" : "white");opacity:@(agotado ? "0.6" : "1");">
+                                <div>
+                                    <div style="font-size:14px;font-weight:500;color:#333;">@p.Nombre</div>
+                                    <div style="font-size:12px;color:#888;">@p.Categoria?.NombreCategoria @(p.Talla != null ? $"· Talla {p.Talla}" : "") · Stock: @p.Stock</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:14px;font-weight:500;">$@p.PrecioUnitario.ToString("N2")</div>
+                                    @if (agotado)
+                                    {
+                                        <div style="font-size:11px;color:#dc2626;">Sin stock</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (busqueda.Length > 1)
+                {
+                    <div style="margin-top:8px;font-size:13px;color:#aaa;padding:8px 0;">No se encontraron productos.</div>
+                }
+            </div>
+
+            <!-- Tabla de productos en la venta -->
+            <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">
+                    Productos en esta venta (@carrito.Count)
+                </div>
+
+                @if (carrito.Count == 0)
+                {
+                    <div style="text-align:center;padding:2rem;color:#ccc;font-size:14px;">
+                        Busca y agrega productos arriba
+                    </div>
+                }
+                else
+                {
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="border-bottom:1px solid #f0f0f0;">
+                                <th style="text-align:left;padding:8px 0;color:#888;font-weight:500;">Producto</th>
+                                <th style="text-align:center;padding:8px 0;color:#888;font-weight:500;width:100px;">Cantidad</th>
+                                <th style="text-align:right;padding:8px 0;color:#888;font-weight:500;">Precio</th>
+                                <th style="text-align:right;padding:8px 0;color:#888;font-weight:500;">Subtotal</th>
+                                <th style="width:32px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in carrito)
+                            {
+                                <tr style="border-bottom:1px solid #f9f9f9;">
+                                    <td style="padding:10px 0;">
+                                        <div style="font-weight:500;">@item.Producto.Nombre</div>
+                                        @if (item.Producto.Talla != null)
+                                        {
+                                            <div style="font-size:11px;color:#888;">Talla @item.Producto.Talla</div>
+                                        }
+                                    </td>
+                                    <td style="padding:10px 0;text-align:center;">
+                                        <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                                            <button @onclick="() => CambiarCantidad(item, -1)"
+                                                    style="width:24px;height:24px;border:1px solid #e0e0e0;border-radius:4px;background:white;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
+                                            <span style="min-width:24px;text-align:center;">@item.Cantidad</span>
+                                            <button @onclick="() => CambiarCantidad(item, 1)"
+                                                    style="width:24px;height:24px;border:1px solid #e0e0e0;border-radius:4px;background:white;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
+                                        </div>
+                                    </td>
+                                    <td style="padding:10px 0;text-align:right;">$@item.Producto.PrecioUnitario.ToString("N2")</td>
+                                    <td style="padding:10px 0;text-align:right;font-weight:500;">$@item.Subtotal.ToString("N2")</td>
+                                    <td style="padding:10px 0;text-align:right;">
+                                        <button @onclick="() => QuitarProducto(item)"
+                                                style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:16px;padding:0 4px;">×</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        <!-- Panel derecho: resumen y cobro -->
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;position:sticky;top:1rem;">
+            <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.25rem;">Resumen</div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.25rem;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <span style="color:#888;">Subtotal</span>
+                    <span>$@totalVenta.ToString("N2")</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;padding-top:10px;border-top:1px solid #f0f0f0;">
+                    <span>Total</span>
+                    <span style="color:#667eea;">$@totalVenta.ToString("N2")</span>
+                </div>
+            </div>
+
+            <!-- Método de pago -->
+            <div style="margin-bottom:1rem;">
+                <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Método de pago</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                    @foreach (var metodo in new[] { "Efectivo", "Tarjeta", "Transferencia" })
+                    {
+                        var activo = metodoPago == metodo;
+                        <button @onclick="() => { metodoPago = metodo; montoPagado = 0; }"
+                                style="padding:10px;border:@(activo ? "2px solid #667eea" : "1px solid #e0e0e0");border-radius:8px;background:@(activo ? "#ede9fe" : "white");color:@(activo ? "#5b21b6" : "#333");font-size:13px;cursor:pointer;font-weight:@(activo ? "600" : "400");">
+                            @(metodo == "Efectivo" ? "💵" : metodo == "Tarjeta" ? "💳" : "🏦") @metodo
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Monto pagado (solo efectivo) -->
+            @if (metodoPago == "Efectivo")
+            {
+                <div style="margin-bottom:1rem;">
+                    <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Monto recibido</label>
+                    <input @bind="montoPagado" @bind:event="oninput" type="number" step="0.01"
+                           style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:16px;font-weight:500;box-sizing:border-box;" />
+                    @if (montoPagado > 0 && cambio >= 0)
+                    {
+                        <div style="margin-top:8px;background:#f0fdf4;border-radius:6px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:13px;color:#16a34a;">Cambio</span>
+                            <span style="font-size:16px;font-weight:600;color:#16a34a;">$@cambio.ToString("N2")</span>
+                        </div>
+                    }
+                    @if (montoPagado > 0 && cambio < 0)
+                    {
+                        <div style="margin-top:8px;background:#fef2f2;border-radius:6px;padding:10px 12px;">
+                            <span style="font-size:13px;color:#dc2626;">Monto insuficiente ($@Math.Abs(cambio).ToString("N2") faltan)</span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Botón cobrar -->
+            <button @onclick="RegistrarVenta"
+                    disabled="@(carrito.Count == 0 || procesando || (metodoPago == "Efectivo" && cambio < 0))"
+                    style="width:100%;padding:14px;border:none;border-radius:8px;background:@(carrito.Count == 0 ? "#e5e5e5" : "linear-gradient(135deg,#667eea,#764ba2)");color:@(carrito.Count == 0 ? "#aaa" : "white");font-size:15px;font-weight:600;cursor:@(carrito.Count == 0 ? "not-allowed" : "pointer");transition:opacity .2s;">
+                @(procesando ? "Registrando..." : $"Cobrar ${totalVenta.ToString("N2")}")
+            </button>
+
+            @if (carrito.Count > 0)
+            {
+                <button @onclick="LimpiarCarrito"
+                        style="width:100%;margin-top:8px;padding:10px;border:1px solid #e0e0e0;border-radius:8px;background:white;color:#888;font-size:13px;cursor:pointer;">
+                    Cancelar venta
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    class ItemCarrito
+    {
+        public Producto Producto { get; set; } = default!;
+        public int Cantidad { get; set; } = 1;
+        public decimal Subtotal => Producto.PrecioUnitario * Cantidad;
+    }
+
+    string busqueda = "";
+    List<Producto> resultadosBusqueda = new();
+    List<ItemCarrito> carrito = new();
+
+    string metodoPago = "Efectivo";
+    decimal montoPagado = 0;
+    decimal cambio => montoPagado - totalVenta;
+    decimal totalVenta => carrito.Sum(i => i.Subtotal);
+
+    bool procesando = false;
+    bool mostrarExito = false;
+    decimal ultimoTotal = 0;
+    string? errorGeneral;
+
+    async Task BuscarProductos()
+    {
+        if (busqueda.Length < 2)
+        {
+            resultadosBusqueda.Clear();
+            return;
+        }
+
+        resultadosBusqueda = await Db.Productos
+            .Include(p => p.Categoria)
+            .Where(p => p.Nombre.Contains(busqueda))
+            .Take(6)
+            .ToListAsync();
+    }
+
+    void AgregarProducto(Producto p)
+    {
+        var existente = carrito.FirstOrDefault(i => i.Producto.IdProducto == p.IdProducto);
+        if (existente != null)
+        {
+            if (existente.Cantidad < p.Stock)
+                existente.Cantidad++;
+        }
+        else
+        {
+            carrito.Add(new ItemCarrito { Producto = p, Cantidad = 1 });
+        }
+        busqueda = "";
+        resultadosBusqueda.Clear();
+    }
+
+    void CambiarCantidad(ItemCarrito item, int delta)
+    {
+        var nuevaCantidad = item.Cantidad + delta;
+        if (nuevaCantidad <= 0)
+            carrito.Remove(item);
+        else if (nuevaCantidad <= item.Producto.Stock)
+            item.Cantidad = nuevaCantidad;
+    }
+
+    void QuitarProducto(ItemCarrito item) => carrito.Remove(item);
+
+    void LimpiarCarrito()
+    {
+        carrito.Clear();
+        busqueda = "";
+        resultadosBusqueda.Clear();
+        montoPagado = 0;
+        errorGeneral = null;
+    }
+
+    async Task RegistrarVenta()
+    {
+        if (carrito.Count == 0) return;
+        if (metodoPago == "Efectivo" && cambio < 0) return;
+
+        procesando = true;
+        errorGeneral = null;
+
+        try
+        {
+            // 1. Crear pago
+            var pago = new Pago
+            {
+                Metodo     = metodoPago,
+                Monto      = totalVenta,
+                Fecha_Pago = DateTime.Now
+            };
+            Db.Pagos.Add(pago);
+            await Db.SaveChangesAsync();
+
+            // 2. Crear venta
+            var venta = new Venta
+            {
+                IdUsuario   = AuthState.CurrentUser!.IdUsuario,
+                IdPago      = pago.IdPago,
+                FechaPedido = DateTime.Now,
+                Total       = totalVenta,
+                Estado      = "Completada"
+            };
+            Db.Ventas.Add(venta);
+            await Db.SaveChangesAsync();
+
+            // 3. Crear detalles (el trigger de SQL descuenta el stock automáticamente)
+            foreach (var item in carrito)
+            {
+                Db.DetallesVenta.Add(new DetalleVenta
+                {
+                    IdVenta    = venta.IdVenta,
+                    IdProducto = item.Producto.IdProducto,
+                    Cantidad   = item.Cantidad,
+                    Subtotal   = item.Subtotal
+                });
+            }
+            await Db.SaveChangesAsync();
+
+            ultimoTotal = totalVenta;
+            LimpiarCarrito();
+            mostrarExito = true;
+        }
+        catch (Exception ex)
+        {
+            var inner = ex.InnerException?.InnerException?.Message
+                     ?? ex.InnerException?.Message
+                     ?? ex.Message;
+            errorGeneral = "Error: " + inner;
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    void NuevaVenta()
+    {
+        mostrarExito = false;
+        metodoPago = "Efectivo";
+        montoPagado = 0;
+    }
+}
