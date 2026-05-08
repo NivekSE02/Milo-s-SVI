@@ -6,6 +6,73 @@
 <PageTitle>Inventario — Milo's SVI</PageTitle>
 
 <!-- Modal Agregar/Editar -->
+@if (mostrarModalCategorias)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="() => { mostrarModalCategorias = false; editandoCategoria = false; formCategoria = new(); errorCategoria = null; }">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:80vh;overflow-y:auto;" @onclick:stopPropagation>
+            <h2 style="font-size:16px;font-weight:500;margin:0 0 1.5rem;">Gestión de categorías</h2>
+
+            @if (errorCategoria != null)
+            {
+                <div style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:1rem;">@errorCategoria</div>
+            }
+
+            <!-- Formulario nueva/editar categoría -->
+            <div style="background:#f9f9f9;border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+                <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:12px;">
+                    @(editandoCategoria ? "Editar categoría" : "Nueva categoría")
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Nombre</label>
+                        <input @bind="formCategoria.Nombre" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" placeholder="Ej: Ropa, Accesorios..." />
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Descripción (opcional)</label>
+                        <input @bind="formCategoria.Descripcion" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" placeholder="Descripción breve..." />
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        @if (editandoCategoria)
+                        {
+                            <button @onclick="CancelarEditarCategoria" style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:13px;cursor:pointer;">
+                                Cancelar
+                            </button>
+                        }
+                        <button @onclick="GuardarCategoria" style="padding:8px 16px;border:none;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:13px;cursor:pointer;font-weight:500;">
+                            @(guardandoCategoria ? "Guardando..." : (editandoCategoria ? "Guardar cambios" : "Agregar"))
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de categorías existentes -->
+            <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:10px;">Categorías existentes</div>
+            @foreach (var cat in categorias)
+            {
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid #f0f0f0;border-radius:8px;margin-bottom:6px;background:white;">
+                    <div>
+                        <div style="font-size:14px;font-weight:500;">@cat.NombreCategoria</div>
+                        @if (!string.IsNullOrEmpty(cat.Descripcion))
+                        {
+                            <div style="font-size:12px;color:#888;">@cat.Descripcion</div>
+                        }
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button @onclick="() => EditarCategoria(cat)" style="padding:6px 12px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:12px;cursor:pointer;">✏️</button>
+                        <button @onclick="() => EliminarCategoria(cat)" style="padding:6px 12px;border:1px solid #fecaca;border-radius:6px;background:white;font-size:12px;cursor:pointer;color:#dc2626;">🗑️</button>
+                    </div>
+                </div>
+            }
+
+            <div style="display:flex;justify-content:flex-end;margin-top:1rem;">
+                <button @onclick="() => { mostrarModalCategorias = false; editandoCategoria = false; formCategoria = new(); errorCategoria = null; }"
+                        style="padding:10px 20px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:14px;cursor:pointer;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+}
 @if (mostrarModal)
 {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="CerrarModal">
@@ -95,9 +162,14 @@
             <h1 style="font-size:18px;font-weight:500;margin:0;">Inventario</h1>
             <p style="font-size:13px;color:#888;margin:2px 0 0;">@productos.Count productos registrados</p>
         </div>
-        <button @onclick="AbrirModalNuevo" style="padding:10px 18px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;font-weight:500;cursor:pointer;">
-            + Nuevo producto
-        </button>
+        <div style="display:flex;gap:8px;">
+            <button @onclick="() => mostrarModalCategorias = true" style="padding:10px 18px;border:1px solid #e0e0e0;border-radius:8px;background:white;color:#333;font-size:14px;font-weight:500;cursor:pointer;">
+                📂 Categorías
+            </button>
+            <button @onclick="AbrirModalNuevo" style="padding:10px 18px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;font-weight:500;cursor:pointer;">
+                + Nuevo producto
+            </button>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -201,6 +273,105 @@
 </div>
 
 @code {
+
+
+    // Categorías
+    bool mostrarModalCategorias = false;
+    bool editandoCategoria = false;
+    bool guardandoCategoria = false;
+    string? errorCategoria;
+
+    class FormCategoria
+    {
+        public int IdCategoria { get; set; }
+        public string Nombre { get; set; } = "";
+        public string? Descripcion { get; set; }
+    }
+
+    FormCategoria formCategoria = new();
+
+    void EditarCategoria(CategoriaProducto cat)
+    {
+        editandoCategoria = true;
+        errorCategoria = null;
+        formCategoria = new FormCategoria
+        {
+            IdCategoria = cat.IdCategoria,
+            Nombre = cat.NombreCategoria,
+            Descripcion = cat.Descripcion
+        };
+    }
+
+    void CancelarEditarCategoria()
+    {
+        editandoCategoria = false;
+        formCategoria = new();
+        errorCategoria = null;
+    }
+
+    async Task GuardarCategoria()
+    {
+        errorCategoria = null;
+
+        if (string.IsNullOrWhiteSpace(formCategoria.Nombre))
+        {
+            errorCategoria = "El nombre es requerido.";
+            return;
+        }
+
+        guardandoCategoria = true;
+
+        try
+        {
+            if (editandoCategoria)
+            {
+                var cat = await Db.Categorias.FindAsync(formCategoria.IdCategoria);
+                if (cat != null)
+                {
+                    cat.NombreCategoria = formCategoria.Nombre.Trim();
+                    cat.Descripcion = formCategoria.Descripcion?.Trim();
+                    await Db.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                Db.Categorias.Add(new CategoriaProducto
+                {
+                    NombreCategoria = formCategoria.Nombre.Trim(),
+                    Descripcion = formCategoria.Descripcion?.Trim()
+                });
+                await Db.SaveChangesAsync();
+            }
+
+            editandoCategoria = false;
+            formCategoria = new();
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            errorCategoria = "Error: " + inner;
+        }
+        finally
+        {
+            guardandoCategoria = false;
+        }
+    }
+
+    async Task EliminarCategoria(CategoriaProducto cat)
+    {
+        errorCategoria = null;
+        try
+        {
+            Db.Categorias.Remove(cat);
+            await Db.SaveChangesAsync();
+            await CargarDatos();
+        }
+        catch
+        {
+            errorCategoria = "No se puede eliminar: la categoría tiene productos asociados.";
+        }
+    }
     bool cargando = true;
     bool mostrarModal = false;
     bool mostrarConfirmarEliminar = false;
@@ -341,7 +512,10 @@
         }
         catch (Exception ex)
         {
-            modalError = "Error al guardar: " + ex.Message;
+            var inner = ex.InnerException?.InnerException?.Message
+                     ?? ex.InnerException?.Message
+                     ?? ex.Message;
+            modalError = "Error: " + inner;
         }
         finally
         {

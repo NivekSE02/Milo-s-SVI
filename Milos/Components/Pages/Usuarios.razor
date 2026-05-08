@@ -1,0 +1,403 @@
+﻿@page "/usuarios"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@using Microsoft.EntityFrameworkCore
+
+
+<PageTitle>Usuarios — Milo's SVI</PageTitle>
+
+@if (!AuthState.EsAdmin)
+{
+    <div style="text-align:center;padding:4rem;color:#888;">No tienes permiso para ver esta página.</div>
+    return;
+}
+
+<!-- Modal Agregar/Editar -->
+@if (mostrarModal)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="CerrarModal">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);" @onclick:stopPropagation>
+            <h2 style="font-size:16px;font-weight:500;margin:0 0 1.5rem;">@(editando ? "Editar usuario" : "Nuevo usuario")</h2>
+
+            @if (modalError != null)
+            {
+                <div style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:1rem;">@modalError</div>
+            }
+
+            <div style="display:grid;gap:1rem;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Nombre</label>
+                        <input @bind="form.Nombre" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Apellido</label>
+                        <input @bind="form.Apellido" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Correo</label>
+                    <input @bind="form.Correo" type="email" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                </div>
+                <div>
+                    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Rol</label>
+                    <select @bind="form.IdRol" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;">
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r.IdRol">@r.Tipo</option>
+                        }
+                    </select>
+                </div>
+                @if (!editando)
+                {
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Contraseña</label>
+                        <input @bind="form.Password" type="password" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                    </div>
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Confirmar contraseña</label>
+                        <input @bind="form.PasswordConfirm" type="password" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                    </div>
+                }
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;">
+                <button @onclick="CerrarModal" style="padding:10px 20px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:14px;cursor:pointer;">Cancelar</button>
+                <button @onclick="GuardarUsuario" style="padding:10px 20px;border:none;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;cursor:pointer;font-weight:500;">
+                    @(guardando ? "Guardando..." : (editando ? "Guardar cambios" : "Crear usuario"))
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Reset Contraseña -->
+@if (mostrarResetPassword)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="() => mostrarResetPassword = false">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:400px;" @onclick:stopPropagation>
+            <h2 style="font-size:16px;font-weight:500;margin:0 0 0.5rem;">Resetear contraseña</h2>
+            <p style="font-size:13px;color:#888;margin:0 0 1.5rem;">Usuario: <strong>@usuarioReset?.Nombre @usuarioReset?.Apellido</strong></p>
+
+            @if (resetError != null)
+            {
+                <div style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:1rem;">@resetError</div>
+            }
+
+            <div style="display:grid;gap:12px;margin-bottom:1.5rem;">
+                <div>
+                    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Nueva contraseña</label>
+                    <input @bind="nuevaPassword" type="password" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                </div>
+                <div>
+                    <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Confirmar contraseña</label>
+                    <input @bind="nuevaPasswordConfirm" type="password" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button @onclick="() => mostrarResetPassword = false" style="padding:10px 20px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:14px;cursor:pointer;">Cancelar</button>
+                <button @onclick="ConfirmarResetPassword" style="padding:10px 20px;border:none;border-radius:6px;background:#f59e0b;color:white;font-size:14px;cursor:pointer;font-weight:500;">
+                    Resetear
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Confirmar Eliminar -->
+@if (mostrarConfirmarEliminar)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="() => mostrarConfirmarEliminar = false">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:380px;" @onclick:stopPropagation>
+            <h2 style="font-size:16px;font-weight:500;margin:0 0 0.5rem;">¿Eliminar usuario?</h2>
+            <p style="font-size:13px;color:#888;margin:0 0 1.5rem;">Se eliminará a <strong>@usuarioAEliminar?.Nombre @usuarioAEliminar?.Apellido</strong>. Esta acción no se puede deshacer.</p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button @onclick="() => mostrarConfirmarEliminar = false" style="padding:10px 20px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:14px;cursor:pointer;">Cancelar</button>
+                <button @onclick="ConfirmarEliminar" style="padding:10px 20px;border:none;border-radius:6px;background:#dc2626;color:white;font-size:14px;cursor:pointer;font-weight:500;">Eliminar</button>
+            </div>
+        </div>
+    </div>
+}
+
+<div style="padding:1.5rem 0;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <div>
+            <h1 style="font-size:18px;font-weight:500;margin:0;">Usuarios</h1>
+            <p style="font-size:13px;color:#888;margin:2px 0 0;">@usuarios.Count usuarios registrados</p>
+        </div>
+        <button @onclick="AbrirModalNuevo" style="padding:10px 18px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;font-weight:500;cursor:pointer;">
+            + Nuevo usuario
+        </button>
+    </div>
+
+    @if (cargando)
+    {
+        <div style="text-align:center;padding:3rem;color:#888;font-size:14px;">Cargando usuarios...</div>
+    }
+    else
+    {
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:#f9f9f9;border-bottom:1px solid #e5e5e5;">
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Usuario</th>
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Correo</th>
+                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Rol</th>
+                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Estado</th>
+                        <th style="text-align:right;padding:12px 16px;color:#888;font-weight:500;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in usuarios)
+                    {
+                        var esYo = u.IdUsuario == AuthState.CurrentUser?.IdUsuario;
+                        var rolNombre = roles.FirstOrDefault(r => r.IdRol == u.IdRol)?.Tipo ?? "—";
+                        var rolColor = u.IdRol == 1 ? "#5b21b6" : "#1e40af";
+                        var rolBg = u.IdRol == 1 ? "#ede9fe" : "#dbeafe";
+                        <tr style="border-bottom:1px solid #f5f5f5;">
+                            <td style="padding:12px 16px;">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:white;flex-shrink:0;">
+                                        @u.Nombre[..1]@u.Apellido[..1]
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:500;">@u.Nombre @u.Apellido @(esYo ? "(tú)" : "")</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding:12px 16px;color:#555;">@u.Correo</td>
+                            <td style="padding:12px 16px;text-align:center;">
+                                <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:@rolBg;color:@rolColor;font-weight:500;">@rolNombre</span>
+                            </td>
+                            <td style="padding:12px 16px;text-align:center;">
+                                @if (u.Estado == 1)
+                                {
+                                    <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;">Activo</span>
+                                }
+                                else
+                                {
+                                    <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#fee2e2;color:#991b1b;">Inactivo</span>
+                                }
+                            </td>
+                            <td style="padding:12px 16px;text-align:right;">
+                                <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                    <button @onclick="() => AbrirModalEditar(u)"
+                                            style="padding:6px 12px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:12px;cursor:pointer;">
+                                        ✏️ Editar
+                                    </button>
+                                    <button @onclick="() => AbrirResetPassword(u)"
+                                            style="padding:6px 12px;border:1px solid #fcd34d;border-radius:6px;background:white;font-size:12px;cursor:pointer;color:#92400e;">
+                                        🔑 Contraseña
+                                    </button>
+                                    @if (!esYo)
+                                    {
+                                        <button @onclick="() => SolicitarEliminar(u)"
+                                                style="padding:6px 12px;border:1px solid #fecaca;border-radius:6px;background:white;font-size:12px;cursor:pointer;color:#dc2626;">
+                                            🗑️
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    bool cargando = true;
+    bool mostrarModal = false;
+    bool mostrarResetPassword = false;
+    bool mostrarConfirmarEliminar = false;
+    bool editando = false;
+    bool guardando = false;
+    string? modalError;
+    string? resetError;
+
+    List<Usuario> usuarios = new();
+    List<Rol> roles = new();
+    Usuario? usuarioAEliminar;
+    Usuario? usuarioReset;
+    string nuevaPassword = "";
+    string nuevaPasswordConfirm = "";
+
+    class FormUsuario
+    {
+        public int IdUsuario { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Apellido { get; set; } = "";
+        public string Correo { get; set; } = "";
+        public int IdRol { get; set; } = 2;
+        public string Password { get; set; } = "";
+        public string PasswordConfirm { get; set; } = "";
+    }
+
+    FormUsuario form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    async Task CargarDatos()
+    {
+        cargando = true;
+        roles = await Db.Roles.ToListAsync();
+        usuarios = await Db.Usuarios.OrderBy(u => u.Nombre).ToListAsync();
+        cargando = false;
+    }
+
+    void AbrirModalNuevo()
+    {
+        editando = false;
+        modalError = null;
+        form = new FormUsuario { IdRol = roles.FirstOrDefault()?.IdRol ?? 2 };
+        mostrarModal = true;
+    }
+
+    void AbrirModalEditar(Usuario u)
+    {
+        editando = true;
+        modalError = null;
+        form = new FormUsuario
+        {
+            IdUsuario = u.IdUsuario,
+            Nombre = u.Nombre,
+            Apellido = u.Apellido,
+            Correo = u.Correo,
+            IdRol = u.IdRol
+        };
+        mostrarModal = true;
+    }
+
+    void CerrarModal()
+    {
+        mostrarModal = false;
+        modalError = null;
+    }
+
+    async Task GuardarUsuario()
+    {
+        modalError = null;
+
+        if (string.IsNullOrWhiteSpace(form.Nombre)) { modalError = "El nombre es requerido."; return; }
+        if (string.IsNullOrWhiteSpace(form.Apellido)) { modalError = "El apellido es requerido."; return; }
+        if (string.IsNullOrWhiteSpace(form.Correo)) { modalError = "El correo es requerido."; return; }
+
+        if (!editando)
+        {
+            if (string.IsNullOrWhiteSpace(form.Password)) { modalError = "La contraseña es requerida."; return; }
+            if (form.Password.Length < 6) { modalError = "La contraseña debe tener al menos 6 caracteres."; return; }
+            if (form.Password != form.PasswordConfirm) { modalError = "Las contraseñas no coinciden."; return; }
+        }
+
+        guardando = true;
+
+        try
+        {
+            if (editando)
+            {
+                var u = await Db.Usuarios.FindAsync(form.IdUsuario);
+                if (u != null)
+                {
+                    u.Nombre = form.Nombre.Trim();
+                    u.Apellido = form.Apellido.Trim();
+                    u.Correo = form.Correo.Trim();
+                    u.IdRol = form.IdRol;
+                    await Db.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                var correoExiste = await Db.Usuarios.AnyAsync(u => u.Correo == form.Correo.Trim());
+                if (correoExiste) { modalError = "Ya existe un usuario con ese correo."; guardando = false; return; }
+
+                Db.Usuarios.Add(new Usuario
+                {
+                    Nombre = form.Nombre.Trim(),
+                    Apellido = form.Apellido.Trim(),
+                    Correo = form.Correo.Trim(),
+                    IdRol = form.IdRol,
+                    Estado = 1,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(form.Password)
+                });
+                await Db.SaveChangesAsync();
+            }
+
+            mostrarModal = false;
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            modalError = "Error: " + inner;
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    void AbrirResetPassword(Usuario u)
+    {
+        usuarioReset = u;
+        nuevaPassword = "";
+        nuevaPasswordConfirm = "";
+        resetError = null;
+        mostrarResetPassword = true;
+    }
+
+    async Task ConfirmarResetPassword()
+    {
+        resetError = null;
+
+        if (string.IsNullOrWhiteSpace(nuevaPassword)) { resetError = "La contraseña es requerida."; return; }
+        if (nuevaPassword.Length < 6) { resetError = "Mínimo 6 caracteres."; return; }
+        if (nuevaPassword != nuevaPasswordConfirm) { resetError = "Las contraseñas no coinciden."; return; }
+
+        try
+        {
+            var u = await Db.Usuarios.FindAsync(usuarioReset!.IdUsuario);
+            if (u != null)
+            {
+                u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevaPassword);
+                await Db.SaveChangesAsync();
+            }
+            mostrarResetPassword = false;
+        }
+        catch (Exception ex)
+        {
+            resetError = "Error: " + ex.Message;
+        }
+    }
+
+    void SolicitarEliminar(Usuario u)
+    {
+        usuarioAEliminar = u;
+        mostrarConfirmarEliminar = true;
+    }
+
+    async Task ConfirmarEliminar()
+    {
+        if (usuarioAEliminar == null) return;
+        try
+        {
+            Db.Usuarios.Remove(usuarioAEliminar);
+            await Db.SaveChangesAsync();
+            mostrarConfirmarEliminar = false;
+            usuarioAEliminar = null;
+            await CargarDatos();
+        }
+        catch
+        {
+            mostrarConfirmarEliminar = false;
+            modalError = "No se puede eliminar: el usuario tiene ventas registradas.";
+        }
+    }
+}

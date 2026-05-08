@@ -18,6 +18,12 @@ else if (_redirectTo != null)
     bool _allowed = false;
     string? _redirectTo = null;
 
+    // Rutas solo para Admin
+    static readonly string[] _adminOnly = { "usuarios" };
+
+    // Rutas permitidas para Vendedor
+    static readonly string[] _vendedorAllowed = { "", "inventario", "ventas" };
+
     protected override void OnInitialized()
     {
         AuthState.OnChange += StateHasChanged;
@@ -27,7 +33,6 @@ else if (_redirectTo != null)
     {
         AuthState.OnChange -= StateHasChanged;
     }
-
 
     protected override void OnParametersSet()
     {
@@ -50,13 +55,30 @@ else if (_redirectTo != null)
                 _redirectTo = "/";
             else
                 _allowed = true;
+            return;
+        }
+
+        if (!AuthState.IsAuthenticated)
+        {
+            _redirectTo = "/login";
+            return;
+        }
+
+        // Si es admin, puede ver todo
+        if (AuthState.EsAdmin)
+        {
+            _allowed = true;
+            return;
+        }
+
+        // Si es vendedor, solo rutas permitidas
+        if (Array.Exists(_vendedorAllowed, p => p == path))
+        {
+            _allowed = true;
         }
         else
         {
-            if (!AuthState.IsAuthenticated)
-                _redirectTo = "/login";
-            else
-                _allowed = true;
+            _redirectTo = "/"; // redirigir a home si intenta acceder a algo no permitido
         }
     }
 }

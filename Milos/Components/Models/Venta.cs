@@ -7,7 +7,7 @@ public class Venta
     [Key] public int IdVenta { get; set; }
     public int IdUsuario { get; set; }
     public int IdPago { get; set; }
-    public DateTime FechaPedido { get; set; } = DateTime.Now;
+    public DateTime? FechaPedido { get; set; } = DateTime.Now;
     public decimal Total { get; set; }
     public string Estado { get; set; } = "";
 

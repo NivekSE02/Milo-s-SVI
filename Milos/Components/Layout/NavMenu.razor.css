@@ -28,6 +28,10 @@
         display: block;
         height: calc(100vh - 3.5rem);
     }
+    .nav-scrollable {
+        position: relative;
+        padding-bottom: 70px; /* espacio para el botón */
+    }
 }
 
 .nav-item {

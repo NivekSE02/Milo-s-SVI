@@ -7,6 +7,7 @@
 <PageTitle>Ventas — Milo's SVI</PageTitle>
 
 <!-- Modal venta completada -->
+
 @if (mostrarExito)
 {
     <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;">
@@ -35,6 +36,8 @@
         <h1 style="font-size:18px;font-weight:500;margin:0;">Nueva venta</h1>
         <p style="font-size:13px;color:#888;margin:2px 0 0;">@DateTime.Now.ToString("dddd, dd 'de' MMMM yyyy")</p>
     </div>
+
+
 
     @if (errorGeneral != null)
     {
@@ -322,11 +325,15 @@
             {
                 Db.DetallesVenta.Add(new DetalleVenta
                 {
-                    IdVenta    = venta.IdVenta,
+                    IdVenta = venta.IdVenta,
                     IdProducto = item.Producto.IdProducto,
-                    Cantidad   = item.Cantidad,
-                    Subtotal   = item.Subtotal
+                    Cantidad = item.Cantidad,
+                    Subtotal = item.Subtotal
                 });
+
+                var producto = await Db.Productos.FindAsync(item.Producto.IdProducto);
+                if (producto != null)
+                    producto.Stock -= item.Cantidad;
             }
             await Db.SaveChangesAsync();
 

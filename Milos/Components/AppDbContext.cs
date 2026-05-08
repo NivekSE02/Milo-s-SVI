@@ -15,15 +15,24 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Deshabilitar OUTPUT clause para DetalleVenta (incompatible con triggers)
         modelBuilder.Entity<DetalleVenta>()
-            .HasOne<Venta>()
-            .WithMany(v => v.Detalles)
-            .HasForeignKey(d => d.IdVenta);
+            .ToTable(tb => tb.UseSqlOutputClause(false));
 
-        modelBuilder.Entity<DetalleVenta>()
-            .HasOne(d => d.Producto)
-            .WithMany()
-            .HasForeignKey(d => d.IdProducto);
+        modelBuilder.Entity<DetalleVenta>(entity =>
+        {
+            entity.ToTable("DetalleVenta", tb => tb.UseSqlOutputClause(false));
+
+            entity.HasKey(d => d.IdDetalle);
+
+            entity.HasOne<Venta>()
+                  .WithMany(v => v.Detalles)
+                  .HasForeignKey(d => d.IdVenta);
+
+            entity.HasOne(d => d.Producto)
+                  .WithMany()
+                  .HasForeignKey(d => d.IdProducto);
+        });
 
         modelBuilder.Entity<Venta>()
             .HasOne(v => v.Usuario)

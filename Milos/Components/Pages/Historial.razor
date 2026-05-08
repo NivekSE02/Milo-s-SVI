@@ -1,0 +1,222 @@
+﻿@page "/historial"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Historial de ventas — Milo's SVI</PageTitle>
+
+<!-- Modal detalle venta -->
+@if (ventaDetalle != null)
+{
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="() => ventaDetalle = null">
+        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);" @onclick:stopPropagation>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <h2 style="font-size:16px;font-weight:500;margin:0;">Venta #@ventaDetalle.IdVenta</h2>
+                <button @onclick="() => ventaDetalle = null" style="border:none;background:none;font-size:20px;cursor:pointer;color:#888;">×</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;">
+                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Fecha</div>
+                    <div style="font-size:13px;font-weight:500;">@ventaDetalle.FechaPedido?.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Estado</div>
+                    <div style="font-size:13px;font-weight:500;color:#16a34a;">@ventaDetalle.Estado</div>
+                </div>
+                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Vendedor</div>
+                    <div style="font-size:13px;font-weight:500;">@(ventaDetalle.Usuario != null ? $"{ventaDetalle.Usuario.Nombre} {ventaDetalle.Usuario.Apellido}" : "—")</div>
+                </div>
+                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Método de pago</div>
+                    <div style="font-size:13px;font-weight:500;">@(ventaDetalle.Pago?.Metodo ?? "—")</div>
+                </div>
+            </div>
+
+            <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Productos</div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid #f0f0f0;">
+                        <th style="text-align:left;padding:8px 0;color:#888;font-weight:500;">Producto</th>
+                        <th style="text-align:center;padding:8px 0;color:#888;font-weight:500;">Cant.</th>
+                        <th style="text-align:right;padding:8px 0;color:#888;font-weight:500;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in ventaDetalle.Detalles)
+                    {
+                        <tr style="border-bottom:1px solid #f9f9f9;">
+                            <td style="padding:10px 0;">
+                                <div style="font-weight:500;">@d.Producto?.Nombre</div>
+                                @if (d.Producto?.Talla != null)
+                                {
+                                    <div style="font-size:11px;color:#888;">Talla @d.Producto.Talla</div>
+                                }
+                            </td>
+                            <td style="padding:10px 0;text-align:center;">@d.Cantidad</td>
+                            <td style="padding:10px 0;text-align:right;font-weight:500;">$@d.Subtotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:2px solid #f0f0f0;">
+                <span style="font-size:15px;font-weight:600;">Total</span>
+                <span style="font-size:18px;font-weight:700;color:#667eea;">$@ventaDetalle.Total.ToString("N2")</span>
+            </div>
+        </div>
+    </div>
+}
+
+<div style="padding:1.5rem 0;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <div>
+            <h1 style="font-size:18px;font-weight:500;margin:0;">Historial de ventas</h1>
+            <p style="font-size:13px;color:#888;margin:2px 0 0;">@totalVentas ventas registradas</p>
+        </div>
+        <!-- Resumen rápido -->
+        <div style="display:flex;gap:12px;">
+            <div style="background:#f0fdf4;border-radius:8px;padding:10px 16px;text-align:center;">
+                <div style="font-size:11px;color:#16a34a;margin-bottom:2px;">Total hoy</div>
+                <div style="font-size:16px;font-weight:600;color:#16a34a;">$@totalHoy.ToString("N2")</div>
+            </div>
+            <div style="background:#ede9fe;border-radius:8px;padding:10px 16px;text-align:center;">
+                <div style="font-size:11px;color:#5b21b6;margin-bottom:2px;">Total mes</div>
+                <div style="font-size:16px;font-weight:600;color:#5b21b6;">$@totalMes.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <input @bind="busqueda" @bind:event="oninput" placeholder="Buscar por vendedor o ID..."
+               style="flex:1;min-width:180px;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
+        <select @bind="filtroMetodo" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;">
+            <option value="">Todos los métodos</option>
+            <option value="Efectivo">💵 Efectivo</option>
+            <option value="Tarjeta">💳 Tarjeta</option>
+            <option value="Transferencia">🏦 Transferencia</option>
+        </select>
+        <input @bind="fechaDesde" type="date" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
+        <input @bind="fechaHasta" type="date" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
+        <button @onclick="LimpiarFiltros" style="padding:10px 16px;border:1px solid #e0e0e0;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#888;">
+            Limpiar
+        </button>
+    </div>
+
+    <!-- Tabla -->
+    @if (cargando)
+    {
+        <div style="text-align:center;padding:3rem;color:#888;font-size:14px;">Cargando historial...</div>
+    }
+    else if (!VentasFiltradas.Any())
+    {
+        <div style="text-align:center;padding:3rem;color:#aaa;font-size:14px;">No se encontraron ventas.</div>
+    }
+    else
+    {
+        <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:#f9f9f9;border-bottom:1px solid #e5e5e5;">
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;"># Venta</th>
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Fecha</th>
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Vendedor</th>
+                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Método</th>
+                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Productos</th>
+                        <th style="text-align:right;padding:12px 16px;color:#888;font-weight:500;">Total</th>
+                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Estado</th>
+                        <th style="padding:12px 16px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in VentasFiltradas)
+                    {
+                        var vendedor = v.Usuario != null ? $"{v.Usuario.Nombre} {v.Usuario.Apellido}" : "—";
+                        var metodoIcon = v.Pago?.Metodo == "Efectivo" ? "💵" : v.Pago?.Metodo == "Tarjeta" ? "💳" : "🏦";
+                        <tr style="border-bottom:1px solid #f5f5f5;cursor:pointer;" @onclick="() => VerDetalle(v)">
+                            <td style="padding:12px 16px;font-weight:500;color:#667eea;">#@v.IdVenta</td>
+                            <td style="padding:12px 16px;color:#555;">
+                                <div>@v.FechaPedido?.ToString("dd/MM/yyyy")</div>
+                                <div style="font-size:11px;color:#aaa;">@v.FechaPedido?.ToString("HH:mm")</div>
+                            </td>
+                            <td style="padding:12px 16px;">@vendedor</td>
+                            <td style="padding:12px 16px;">@metodoIcon @v.Pago?.Metodo</td>
+                            <td style="padding:12px 16px;text-align:center;">@v.Detalles.Count</td>
+                            <td style="padding:12px 16px;text-align:right;font-weight:600;">$@v.Total.ToString("N2")</td>
+                            <td style="padding:12px 16px;text-align:center;">
+                                <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;">@v.Estado</span>
+                            </td>
+                            <td style="padding:12px 16px;text-align:center;">
+                                <button @onclick:stopPropagation @onclick="() => VerDetalle(v)"
+                                        style="border:1px solid #e0e0e0;border-radius:6px;background:white;padding:6px 12px;font-size:12px;cursor:pointer;">
+                                    Ver
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f9f9f9;border-top:2px solid #e5e5e5;">
+                        <td colspan="5" style="padding:12px 16px;font-size:13px;color:#888;">@VentasFiltradas.Count() ventas filtradas</td>
+                        <td style="padding:12px 16px;text-align:right;font-weight:700;font-size:14px;">$@VentasFiltradas.Sum(v => v.Total).ToString("N2")</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    bool cargando = true;
+    List<Venta> ventas = new();
+    Venta? ventaDetalle;
+
+    string busqueda = "";
+    string filtroMetodo = "";
+    DateTime? fechaDesde;
+    DateTime? fechaHasta;
+
+    int totalVentas;
+    decimal totalHoy;
+    decimal totalMes;
+
+    IEnumerable<Venta> VentasFiltradas => ventas.Where(v =>
+        (string.IsNullOrEmpty(busqueda) ||
+         v.IdVenta.ToString().Contains(busqueda) ||
+         (v.Usuario != null && $"{v.Usuario.Nombre} {v.Usuario.Apellido}".Contains(busqueda, StringComparison.OrdinalIgnoreCase)))
+        && (string.IsNullOrEmpty(filtroMetodo) || v.Pago?.Metodo == filtroMetodo)
+        && (fechaDesde == null || v.FechaPedido >= fechaDesde)
+        && (fechaHasta == null || v.FechaPedido < fechaHasta.Value.AddDays(1)));
+
+    protected override async Task OnInitializedAsync()
+    {
+        ventas = await Db.Ventas
+            .Include(v => v.Usuario)
+            .Include(v => v.Pago)
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .OrderByDescending(v => v.FechaPedido)
+            .ToListAsync();
+
+        totalVentas = ventas.Count;
+        totalHoy = ventas.Where(v => v.FechaPedido >= DateTime.Today).Sum(v => v.Total);
+        totalMes = ventas.Where(v => v.FechaPedido >= new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)).Sum(v => v.Total);
+
+        cargando = false;
+    }
+
+    void VerDetalle(Venta v) => ventaDetalle = v;
+
+    void LimpiarFiltros()
+    {
+        busqueda = "";
+        filtroMetodo = "";
+        fechaDesde = null;
+        fechaHasta = null;
+    }
+}
