@@ -166,11 +166,17 @@
             <button @onclick="() => mostrarModalCategorias = true" style="padding:10px 18px;border:1px solid #e0e0e0;border-radius:8px;background:white;color:#333;font-size:14px;font-weight:500;cursor:pointer;">
                 📂 Categorías
             </button>
+         
             <button @onclick="AbrirModalNuevo" style="padding:10px 18px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:14px;font-weight:500;cursor:pointer;">
                 + Nuevo producto
             </button>
+            <button @onclick="() => mostrarModalEntrada = true" style="padding:10px 18px;border:1px solid #e0e0e0;border-radius:8px;background:white;color:#333;font-size:14px;font-weight:500;cursor:pointer;">
+                📦 Movimientos
+            </button>
         </div>
     </div>
+   
+
 
     <!-- Filtros -->
     <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;">
@@ -182,7 +188,7 @@
             {
                 <option value="@cat.IdCategoria">@cat.NombreCategoria</option>
             }
-        </select>
+        </select>   
         <select @bind="filtroStock" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;">
             <option value="todos">Todo el stock</option>
             <option value="critico">Stock crítico (≤10)</option>
@@ -191,6 +197,133 @@
     </div>
 
     <!-- Cards -->
+    @if (mostrarModalEntrada)
+    {
+        <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="CerrarModalEntrada">
+            <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);" @onclick:stopPropagation>
+
+                <h2 style="font-size:16px;font-weight:500;margin:0 0 1.25rem;">Movimiento de inventario</h2>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1.5rem;">
+                    <button @onclick='() => { tipoMovimiento = "Entrada"; entradaMotivo = ""; }'
+                            style="padding:10px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;
+                                   border:@(tipoMovimiento == "Entrada" ? "2px solid #16a34a" : "1px solid #e0e0e0");
+                                   background:@(tipoMovimiento == "Entrada" ? "#f0fdf4" : "white");
+                                   color:@(tipoMovimiento == "Entrada" ? "#16a34a" : "#555");">
+                        📥 Entrada de stock
+                    </button>
+                    <button @onclick='() => { tipoMovimiento = "Salida"; entradaMotivo = ""; }'
+                            style="padding:10px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;
+                                   border:@(tipoMovimiento == "Salida" ? "2px solid #dc2626" : "1px solid #e0e0e0");
+                                   background:@(tipoMovimiento == "Salida" ? "#fef2f2" : "white");
+                                   color:@(tipoMovimiento == "Salida" ? "#dc2626" : "#555");">
+                        📤 Salida de stock
+                    </button>
+                </div>
+
+                @if (entradaError != null)
+                {
+                    <div style="color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:1rem;">@entradaError</div>
+                }
+                @if (entradaExito)
+                {
+                    <div style="color:#065f46;background:#d1fae5;border:1px solid #6ee7b7;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:1rem;">
+                        ✓ Movimiento registrado correctamente.
+                    </div>
+                }
+
+                <div style="display:grid;gap:1rem;">
+
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Producto</label>
+                        <select @bind="entradaIdProducto" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;">
+                            <option value="0">— Seleccionar producto —</option>
+                            @foreach (var p in productos)
+                            {
+                                <option value="@p.IdProducto">@p.Nombre @(p.Talla != null ? $"(Talla {p.Talla})" : "") — Stock: @p.Stock</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Cantidad</label>
+                        <input @bind="entradaCantidad" type="number" min="1"
+                               style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                    </div>
+
+                    <div>
+                        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">
+                            @(tipoMovimiento == "Salida" ? "Motivo de salida" : "Motivo (opcional)")
+                        </label>
+                        @if (tipoMovimiento == "Salida")
+                        {
+                            <select @bind="entradaMotivo" style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;">
+                                <option value="">— Seleccionar motivo —</option>
+                                <option value="Merma">Merma / Pérdida</option>
+                                <option value="Daño">Producto dañado</option>
+                                <option value="Robo">Robo / Extravío</option>
+                                <option value="Corrección">Corrección de inventario</option>
+                                <option value="Devolución">Devolución a proveedor</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <input @bind="entradaMotivo" placeholder="Ej: Reabastecimiento, compra proveedor..."
+                                   style="width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;" />
+                        }
+                    </div>
+
+                    @if (entradaIdProducto > 0 && entradaCantidad > 0)
+                    {
+                        var prod = productos.FirstOrDefault(p => p.IdProducto == entradaIdProducto);
+                        if (prod != null)
+                        {
+                            var stockResultante = tipoMovimiento == "Entrada"
+                            ? prod.Stock + entradaCantidad
+                            : prod.Stock - entradaCantidad;
+                            var colorResultante = stockResultante < 0 ? "#dc2626" : stockResultante <= 10 ? "#f59e0b" : "#16a34a";
+                            var bgResultante = tipoMovimiento == "Entrada" ? "#f0fdf4" : "#fef2f2";
+
+                            <div style="background:@bgResultante;border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <div style="font-size:12px;color:#888;">Stock actual</div>
+                                    <div style="font-size:16px;font-weight:600;color:#333;">@prod.Stock unid.</div>
+                                </div>
+                                <div style="font-size:20px;color:@(tipoMovimiento == "Entrada" ? "#16a34a" : "#dc2626");">→</div>
+                                <div>
+                                    <div style="font-size:12px;color:#888;">Stock resultante</div>
+                                    <div style="font-size:16px;font-weight:600;color:@colorResultante;">
+                                        @stockResultante unid.
+                                        @if (stockResultante < 0)
+                                        {
+                                            <span style="font-size:11px;"> ⚠️ insuficiente</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                </div>
+
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;">
+                    <button @onclick="CerrarModalEntrada"
+                            style="padding:10px 20px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:14px;cursor:pointer;">
+                        Cerrar
+                    </button>
+                    <button @onclick="RegistrarMovimiento"
+                            style="padding:10px 20px;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;
+                                   background:@(tipoMovimiento == "Entrada" ? "linear-gradient(135deg,#16a34a,#15803d)" : "linear-gradient(135deg,#dc2626,#b91c1c)");
+                                   color:white;">
+                        @(guardandoEntrada ? "Registrando..." : (tipoMovimiento == "Entrada" ? "✓ Registrar entrada" : "✓ Registrar salida"))
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+
     @if (cargando)
     {
         <div style="text-align:center;padding:3rem;color:#888;font-size:14px;">Cargando inventario...</div>
@@ -273,6 +406,89 @@
 </div>
 
 @code {
+    // Entrada de inventario
+    // Movimientos de inventario
+    bool mostrarModalEntrada = false;
+    bool guardandoEntrada = false;
+    bool entradaExito = false;
+    string? entradaError;
+    int entradaIdProducto = 0;
+    int entradaCantidad = 0;
+    string entradaMotivo = "";
+    string tipoMovimiento = "Entrada";
+
+    void CerrarModalEntrada()
+    {
+        mostrarModalEntrada = false;
+        entradaError = null;
+        entradaExito = false;
+        entradaIdProducto = 0;
+        entradaCantidad = 0;
+        entradaMotivo = "";
+        tipoMovimiento = "Entrada";
+    }
+
+    async Task RegistrarMovimiento()
+    {
+        entradaError = null;
+        entradaExito = false;
+
+        if (entradaIdProducto == 0) { entradaError = "Selecciona un producto."; return; }
+        if (entradaCantidad <= 0) { entradaError = "La cantidad debe ser mayor a 0."; return; }
+        if (tipoMovimiento == "Salida" && string.IsNullOrWhiteSpace(entradaMotivo))
+        {
+            entradaError = "Selecciona un motivo para la salida.";
+            return;
+        }
+
+        var prod = productos.FirstOrDefault(p => p.IdProducto == entradaIdProducto);
+        if (tipoMovimiento == "Salida" && prod != null && prod.Stock < entradaCantidad)
+        {
+            entradaError = $"Stock insuficiente. Solo hay {prod.Stock} unidades disponibles.";
+            return;
+        }
+
+        guardandoEntrada = true;
+
+        try
+        {
+            var producto = await Db.Productos.FindAsync(entradaIdProducto);
+            if (producto == null) { entradaError = "Producto no encontrado."; return; }
+
+            if (tipoMovimiento == "Entrada")
+                producto.Stock += entradaCantidad;
+            else
+                producto.Stock -= entradaCantidad;
+
+            Db.MovimientosInventario.Add(new MovimientoInventario
+            {
+                TipoMovimiento = tipoMovimiento == "Entrada"
+                    ? $"Entrada{(string.IsNullOrEmpty(entradaMotivo) ? "" : $": {entradaMotivo}")}"
+                    : $"Salida: {entradaMotivo}",
+                IdProducto = entradaIdProducto,
+                Cantidad = entradaCantidad,
+                Fecha = DateTime.Now
+            });
+
+            await Db.SaveChangesAsync();
+
+            entradaExito = true;
+            entradaIdProducto = 0;
+            entradaCantidad = 0;
+            entradaMotivo = "";
+
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            var inner = ex.InnerException?.Message ?? ex.Message;
+            entradaError = "Error: " + inner;
+        }
+        finally
+        {
+            guardandoEntrada = false;
+        }
+    }
 
 
     // Categorías

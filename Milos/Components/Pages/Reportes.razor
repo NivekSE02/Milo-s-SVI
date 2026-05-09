@@ -1,0 +1,476 @@
+﻿@page "/reportes"
+@rendermode InteractiveServer
+@inject AppDbContext Db
+@inject AuthState AuthState
+@inject NavigationManager Nav
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Reportes — Milo's SVI</PageTitle>
+
+@if (!AuthState.EsAdmin)
+{
+    <div style="text-align:center;padding:4rem;color:#888;">No tienes permiso para ver esta página.</div>
+    return;
+}
+
+@if (cargando)
+{
+    <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:#888;font-size:14px;">
+        Cargando reportes...
+    </div>
+}
+else
+{
+    <div style="padding:1.5rem 0;">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+            <div>
+                <h1 style="font-size:18px;font-weight:500;margin:0;">Reportes</h1>
+                <p style="font-size:13px;color:#888;margin:2px 0 0;">Análisis de ventas e inventario</p>
+            </div>
+            <!-- Filtro de período -->
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-size:13px;color:#888;">Período:</span>
+                @foreach (var p in new[] { ("7d", "7 días"), ("30d", "30 días"), ("mes", "Este mes"), ("todo", "Todo") })
+                {
+                    var activo = periodo == p.Item1;
+                    <button @onclick='() => CambiarPeriodo(p.Item1)'
+                            style="padding:8px 14px;border-radius:6px;font-size:13px;cursor:pointer;
+                                           border:@(activo ? "2px solid #667eea" : "1px solid #e0e0e0");
+                                           background:@(activo ? "#ede9fe" : "white");
+                                           color:@(activo ? "#5b21b6" : "#555");font-weight:@(activo ? "600" : "400");">
+                        @p.Item2
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Pestañas -->
+        <div style="display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:2px solid #f0f0f0;padding-bottom:0;">
+            @foreach (var t in new[] { ("ventas", "📊 Ventas"), ("inventario", "📦 Inventario") })
+            {
+                var activo = tab == t.Item1;
+                <button @onclick='() => tab = t.Item1'
+                        style="padding:10px 20px;border:none;background:none;font-size:14px;cursor:pointer;font-weight:500;
+                                       color:@(activo ? "#667eea" : "#888");
+                                       border-bottom:@(activo ? "2px solid #667eea" : "2px solid transparent");
+                                       margin-bottom:-2px;">
+                    @t.Item2
+                </button>
+            }
+        </div>
+
+        <!-- TAB VENTAS -->
+        @if (tab == "ventas")
+        {
+            <!-- KPIs -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem;">
+                <div style="background:#f0fdf4;border-radius:10px;padding:1rem;">
+                    <div style="font-size:12px;color:#16a34a;margin-bottom:4px;">💰 Total ventas</div>
+                    <div style="font-size:22px;font-weight:600;color:#15803d;">$@totalVentas.ToString("N2")</div>
+                </div>
+                <div style="background:#ede9fe;border-radius:10px;padding:1rem;">
+                    <div style="font-size:12px;color:#5b21b6;margin-bottom:4px;">🧾 Órdenes</div>
+                    <div style="font-size:22px;font-weight:600;color:#4c1d95;">@cantOrdenes</div>
+                </div>
+                <div style="background:#dbeafe;border-radius:10px;padding:1rem;">
+                    <div style="font-size:12px;color:#1e40af;margin-bottom:4px;">📈 Ticket promedio</div>
+                    <div style="font-size:22px;font-weight:600;color:#1e3a8a;">$@ticketPromedio.ToString("N2")</div>
+                </div>
+                <div style="background:#fef3c7;border-radius:10px;padding:1rem;">
+                    <div style="font-size:12px;color:#92400e;margin-bottom:4px;">📦 Productos vendidos</div>
+                    <div style="font-size:22px;font-weight:600;color:#78350f;">@totalProductosVendidos</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem;">
+
+                <!-- Ventas por día -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Ventas por día</div>
+                    @if (!ventasPorDia.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin datos en este período</div>
+                    }
+                    else
+                    {
+                        var maxDia = ventasPorDia.Max(x => x.Total);
+                        @foreach (var d in ventasPorDia.TakeLast(10))
+                        {
+                            var pct = maxDia > 0 ? (int)(d.Total / maxDia * 100) : 0;
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                <span style="font-size:11px;color:#888;width:70px;flex-shrink:0;">@d.Fecha</span>
+                                <div style="flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;">
+                                    <div style="height:100%;width:@(pct)%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:4px;"></div>
+                                </div>
+                                <span style="font-size:12px;font-weight:500;width:65px;text-align:right;">$@d.Total.ToString("N0")</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Ventas por método de pago -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Por método de pago</div>
+                    @if (!ventasPorMetodo.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin datos</div>
+                    }
+                    else
+                    {
+                        var totalMetodos = ventasPorMetodo.Sum(x => x.Total);
+                        string[] coloresMetodo = { "#667eea", "#16a34a", "#f59e0b" };
+                        @for (int i = 0; i < ventasPorMetodo.Count; i++)
+                        {
+                            var m = ventasPorMetodo[i];
+                            var pct = totalMetodos > 0 ? (int)(m.Total / totalMetodos * 100) : 0;
+                            var color = coloresMetodo[i % coloresMetodo.Length];
+                            <div style="margin-bottom:14px;">
+                                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                                    <span style="font-weight:500;">
+                                        @(m.Metodo == "Efectivo" ? "💵" : m.Metodo == "Tarjeta" ? "💳" : "🏦") @m.Metodo
+                                    </span>
+                                    <span style="color:#888;">@pct% · $@m.Total.ToString("N0")</span>
+                                </div>
+                                <div style="height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;">
+                                    <div style="height:100%;width:@(pct)%;background:@color;border-radius:4px;"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+                <!-- Ventas por vendedor -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Por vendedor</div>
+                    @if (!ventasPorVendedor.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin datos</div>
+                    }
+                    else
+                    {
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #f0f0f0;">
+                                    <th style="text-align:left;padding:6px 0;color:#888;font-weight:500;">Vendedor</th>
+                                    <th style="text-align:center;padding:6px 0;color:#888;font-weight:500;">Órdenes</th>
+                                    <th style="text-align:right;padding:6px 0;color:#888;font-weight:500;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in ventasPorVendedor)
+                                {
+                                    <tr style="border-bottom:1px solid #f9f9f9;">
+                                        <td style="padding:8px 0;">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:600;flex-shrink:0;">
+                                                    @v.Iniciales
+                                                </div>
+                                                @v.Nombre
+                                            </div>
+                                        </td>
+                                        <td style="padding:8px 0;text-align:center;color:#555;">@v.Ordenes</td>
+                                        <td style="padding:8px 0;text-align:right;font-weight:600;color:#667eea;">$@v.Total.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                <!-- Productos más vendidos -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Productos más vendidos</div>
+                    @if (!productosMasVendidos.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin datos</div>
+                    }
+                    else
+                    {
+                        var maxVendido = productosMasVendidos.Max(x => x.Cantidad);
+                        @for (int i = 0; i < productosMasVendidos.Count; i++)
+                        {
+                            var prod = productosMasVendidos[i];
+                            var pct = maxVendido > 0 ? (int)((decimal)prod.Cantidad / maxVendido * 100) : 0;
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                                <span style="font-size:12px;font-weight:700;color:#aaa;width:16px;">@(i + 1)</span>
+                                <div style="flex:1;">
+                                    <div style="font-size:13px;font-weight:500;margin-bottom:3px;">@prod.Nombre</div>
+                                    <div style="height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
+                                        <div style="height:100%;width:@(pct)%;background:#667eea;border-radius:3px;"></div>
+                                    </div>
+                                </div>
+                                <span style="font-size:12px;color:#888;white-space:nowrap;">@prod.Cantidad unid.</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- TAB INVENTARIO -->
+        @if (tab == "inventario")
+        {
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem;">
+
+                <!-- Productos más vendidos (rotación) -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Mayor rotación de stock</div>
+                    @if (!productosMasVendidos.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin datos</div>
+                    }
+                    else
+                    {
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #f0f0f0;">
+                                    <th style="text-align:left;padding:6px 0;color:#888;font-weight:500;">Producto</th>
+                                    <th style="text-align:right;padding:6px 0;color:#888;font-weight:500;">Vendidos</th>
+                                    <th style="text-align:right;padding:6px 0;color:#888;font-weight:500;">Stock actual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in productosMasVendidos)
+                                {
+                                    var stockColor = p.StockActual == 0 ? "#dc2626" : p.StockActual <= 10 ? "#f59e0b" : "#16a34a";
+                                    <tr style="border-bottom:1px solid #f9f9f9;">
+                                        <td style="padding:8px 0;font-weight:500;">@p.Nombre</td>
+                                        <td style="padding:8px 0;text-align:right;">@p.Cantidad</td>
+                                        <td style="padding:8px 0;text-align:right;font-weight:600;color:@stockColor;">@p.StockActual</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                <!-- Productos sin movimiento -->
+                <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Sin movimiento en el período</div>
+                    @if (!productosSinMovimiento.Any())
+                    {
+                        <div style="text-align:center;padding:2rem;color:#16a34a;font-size:13px;">✓ Todos los productos tuvieron movimiento</div>
+                    }
+                    else
+                    {
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:1px solid #f0f0f0;">
+                                    <th style="text-align:left;padding:6px 0;color:#888;font-weight:500;">Producto</th>
+                                    <th style="text-align:right;padding:6px 0;color:#888;font-weight:500;">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in productosSinMovimiento)
+                                {
+                                    <tr style="border-bottom:1px solid #f9f9f9;">
+                                        <td style="padding:8px 0;">
+                                            <div style="font-weight:500;">@p.Nombre</div>
+                                            @if (p.Categoria != null)
+                                            {
+                                                <div style="font-size:11px;color:#888;">@p.Categoria.NombreCategoria</div>
+                                            }
+                                        </td>
+                                        <td style="padding:8px 0;text-align:right;color:#888;">@p.Stock unid.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+
+            <!-- Movimientos de inventario -->
+            <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;padding:1.25rem;">
+                <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">
+                    Movimientos de inventario (@movimientos.Count registros)
+                </div>
+                @if (!movimientos.Any())
+                {
+                    <div style="text-align:center;padding:2rem;color:#ccc;font-size:13px;">Sin movimientos en este período</div>
+                }
+                else
+                {
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#f9f9f9;border-bottom:1px solid #e5e5e5;">
+                                <th style="text-align:left;padding:10px 12px;color:#888;font-weight:500;">Fecha</th>
+                                <th style="text-align:left;padding:10px 12px;color:#888;font-weight:500;">Producto</th>
+                                <th style="text-align:left;padding:10px 12px;color:#888;font-weight:500;">Tipo</th>
+                                <th style="text-align:right;padding:10px 12px;color:#888;font-weight:500;">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in movimientos)
+                            {
+                                var esEntrada = m.TipoMovimiento.StartsWith("Entrada");
+                                var tipoColor = esEntrada ? "#16a34a" : "#dc2626";
+                                var tipoBg = esEntrada ? "#d1fae5" : "#fee2e2";
+                                <tr style="border-bottom:1px solid #f5f5f5;">
+                                    <td style="padding:10px 12px;color:#555;">
+                                        <div>@m.Fecha.ToString("dd/MM/yyyy")</div>
+                                        <div style="font-size:11px;color:#aaa;">@m.Fecha.ToString("HH:mm")</div>
+                                    </td>
+                                    <td style="padding:10px 12px;font-weight:500;">@m.Producto?.Nombre</td>
+                                    <td style="padding:10px 12px;">
+                                        <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:@tipoBg;color:@tipoColor;">
+                                            @m.TipoMovimiento
+                                        </span>
+                                    </td>
+                                    <td style="padding:10px 12px;text-align:right;font-weight:600;color:@tipoColor;">
+                                        @(esEntrada ? "+" : "-")@m.Cantidad
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+
+    </div>
+}
+
+@code {
+    bool cargando = true;
+    string tab = "ventas";
+    string periodo = "30d";
+
+    // Ventas
+    decimal totalVentas;
+    int cantOrdenes;
+    decimal ticketPromedio;
+    int totalProductosVendidos;
+
+    record VentaDia(string Fecha, decimal Total);
+    record VentaMetodo(string Metodo, decimal Total);
+    record VentaVendedor(string Nombre, string Iniciales, int Ordenes, decimal Total);
+    record ProductoVendido(string Nombre, int Cantidad, int StockActual);
+
+    List<VentaDia> ventasPorDia = new();
+    List<VentaMetodo> ventasPorMetodo = new();
+    List<VentaVendedor> ventasPorVendedor = new();
+    List<ProductoVendido> productosMasVendidos = new();
+
+    // Inventario
+    List<Producto> productosSinMovimiento = new();
+    List<MovimientoInventario> movimientos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    async Task CambiarPeriodo(string p)
+    {
+        periodo = p;
+        await CargarDatos();
+    }
+
+    DateTime GetFechaDesde()
+    {
+        return periodo switch
+        {
+            "7d" => DateTime.Today.AddDays(-7),
+            "30d" => DateTime.Today.AddDays(-30),
+            "mes" => new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1),
+            _ => DateTime.MinValue
+        };
+    }
+
+    async Task CargarDatos()
+    {
+        cargando = true;
+        var desde = GetFechaDesde();
+
+        // --- VENTAS ---
+        var ventas = await Db.Ventas
+            .Include(v => v.Usuario)
+            .Include(v => v.Pago)
+            .Include(v => v.Detalles)
+            .Where(v => v.FechaPedido >= desde)
+            .ToListAsync();
+
+        totalVentas = ventas.Sum(v => v.Total);
+        cantOrdenes = ventas.Count;
+        ticketPromedio = cantOrdenes > 0 ? totalVentas / cantOrdenes : 0;
+        totalProductosVendidos = ventas.SelectMany(v => v.Detalles).Sum(d => d.Cantidad);
+
+        // Ventas por día
+        ventasPorDia = ventas
+            .Where(v => v.FechaPedido.HasValue)
+            .GroupBy(v => v.FechaPedido!.Value.Date)
+            .OrderBy(g => g.Key)
+            .Select(g => new VentaDia(g.Key.ToString("dd/MM"), g.Sum(v => v.Total)))
+            .ToList();
+
+        // Ventas por método de pago
+        ventasPorMetodo = ventas
+            .Where(v => v.Pago != null)
+            .GroupBy(v => v.Pago!.Metodo)
+            .Select(g => new VentaMetodo(g.Key, g.Sum(v => v.Total)))
+            .OrderByDescending(x => x.Total)
+            .ToList();
+
+        // Ventas por vendedor
+        ventasPorVendedor = ventas
+            .Where(v => v.Usuario != null)
+            .GroupBy(v => v.Usuario!)
+            .Select(g => new VentaVendedor(
+                $"{g.Key.Nombre} {g.Key.Apellido}",
+                $"{g.Key.Nombre[..1]}{g.Key.Apellido[..1]}",
+                g.Count(),
+                g.Sum(v => v.Total)
+            ))
+            .OrderByDescending(x => x.Total)
+            .ToList();
+
+        // Productos más vendidos
+        var idsVendidos = ventas
+            .SelectMany(v => v.Detalles)
+            .GroupBy(d => d.IdProducto)
+            .Select(g => new { IdProducto = g.Key, Cantidad = g.Sum(d => d.Cantidad) })
+            .OrderByDescending(x => x.Cantidad)
+            .Take(8)
+            .ToList();
+
+        var productosDb = await Db.Productos.ToListAsync();
+        productosMasVendidos = idsVendidos
+            .Select(x =>
+            {
+                var p = productosDb.FirstOrDefault(p => p.IdProducto == x.IdProducto);
+                return p != null ? new ProductoVendido(p.Nombre, x.Cantidad, p.Stock) : null;
+            })
+            .Where(x => x != null)
+            .Select(x => x!)
+            .ToList();
+
+        // --- INVENTARIO ---
+        // Productos sin movimiento en el período
+        var idsConMovimiento = ventas
+            .SelectMany(v => v.Detalles)
+            .Select(d => d.IdProducto)
+            .Distinct()
+            .ToHashSet();
+
+        productosSinMovimiento = await Db.Productos
+            .Include(p => p.Categoria)
+            .Where(p => !idsConMovimiento.Contains(p.IdProducto))
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
+
+        // Movimientos de inventario
+        movimientos = await Db.MovimientosInventario
+            .Include(m => m.Producto)
+            .Where(m => m.Fecha >= desde)
+            .OrderByDescending(m => m.Fecha)
+            .ToListAsync();
+
+        cargando = false;
+    }
+}

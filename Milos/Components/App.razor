@@ -1,6 +1,31 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <style>
+        @@media print {
+            body * {
+                visibility: hidden !important;
+            }
+
+            #factura-print, #factura-print * {
+                visibility: visible !important;
+            }
+
+            #factura-print {
+                position: fixed !important;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 2rem;
+                background: white;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />

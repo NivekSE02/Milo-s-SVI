@@ -12,12 +12,22 @@ public class AppDbContext : DbContext
     public DbSet<Venta> Ventas { get; set; }
     public DbSet<DetalleVenta> DetallesVenta { get; set; }
     public DbSet<MovimientoInventario> MovimientosInventario { get; set; }
+    public DbSet<ExportacionFactura> Facturas { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Deshabilitar OUTPUT clause para DetalleVenta (incompatible con triggers)
         modelBuilder.Entity<DetalleVenta>()
             .ToTable(tb => tb.UseSqlOutputClause(false));
+
+        modelBuilder.Entity<ExportacionFactura>()
+    .ToTable("Exportacion_Factura", tb => tb.UseSqlOutputClause(false));
+
+        modelBuilder.Entity<ExportacionFactura>()
+    .HasOne(f => f.Venta)
+    .WithMany()
+    .HasForeignKey(f => f.IdVenta);
 
         modelBuilder.Entity<DetalleVenta>(entity =>
         {
