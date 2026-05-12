@@ -154,7 +154,7 @@
                 <tbody>
                     @foreach (var u in usuarios)
                     {
-                        var esYo = u.IdUsuario == AuthState.CurrentUser?.IdUsuario;
+                        var esYo = u.IdUsuario == AuthState.IdUsuario;
                         var rolNombre = roles.FirstOrDefault(r => r.IdRol == u.IdRol)?.Tipo ?? "—";
                         var rolColor = u.IdRol == 1 ? "#5b21b6" : "#1e40af";
                         var rolBg = u.IdRol == 1 ? "#ede9fe" : "#dbeafe";

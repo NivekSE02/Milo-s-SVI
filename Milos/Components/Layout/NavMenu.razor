@@ -1,114 +1,483 @@
 ﻿@inject AuthState AuthState
 @inject NavigationManager Nav
 
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Milo's SVI</a>
-        <button class="navbar-toggler-desktop" @onclick="ToggleSidebar" title="Plegar menú">
-            @if (collapsed)
-            {
-                <span>☰</span>
-            }
-            else
-            {
+<style>
+    .nav-sidebar {
+        width: 240px;
+        height: 100vh;
+        background: #0f172a;
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 0;
+        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
 
-                <span>✕</span>
+        .nav-sidebar.collapsed {
+            width: 64px;
+        }
+
+    /* Header */
+    .nav-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        height: 64px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        flex-shrink: 0;
+    }
+
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        overflow: hidden;
+    }
+
+    .nav-logo-icon {
+        width: 32px;
+        height: 32px;
+        background: #2563eb;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 14px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.5px;
+    }
+
+    .nav-logo-text {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        letter-spacing: -0.3px;
+        white-space: nowrap;
+        opacity: 1;
+        transition: opacity 0.2s ease;
+    }
+
+    .nav-sidebar.collapsed .nav-logo-text {
+        opacity: 0;
+        width: 0;
+    }
+
+    .nav-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        color: rgba(255,255,255,0.4);
+        transition: background 0.15s, color 0.15s;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .nav-toggle:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        .nav-toggle svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.25s ease;
+        }
+
+    .nav-sidebar.collapsed .nav-toggle svg {
+        transform: rotate(180deg);
+    }
+
+    /* Scrollable area */
+    .nav-body {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 12px 8px;
+        scrollbar-width: none;
+    }
+
+        .nav-body::-webkit-scrollbar {
+            display: none;
+        }
+
+    /* Section labels */
+    .nav-section-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.25);
+        padding: 8px 8px 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        transition: opacity 0.2s ease;
+    }
+
+    .nav-sidebar.collapsed .nav-section-label {
+        opacity: 0;
+    }
+
+    /* Nav links */
+    .nav-link-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: rgba(255,255,255,0.55);
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: background 0.15s ease, color 0.15s ease;
+        position: relative;
+        margin-bottom: 2px;
+        cursor: pointer;
+    }
+
+        .nav-link-item:hover {
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.9);
+        }
+
+        .nav-link-item.active {
+            background: rgba(37,99,235,0.2);
+            color: #60a5fa;
+        }
+
+            .nav-link-item.active .nav-link-icon {
+                color: #3b82f6;
             }
+
+    .nav-link-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s;
+    }
+
+        .nav-link-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+    .nav-link-label {
+        opacity: 1;
+        transition: opacity 0.2s ease;
+        overflow: hidden;
+    }
+
+    .nav-sidebar.collapsed .nav-link-label {
+        opacity: 0;
+        width: 0;
+    }
+
+    /* Active indicator */
+    .nav-link-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        background: #3b82f6;
+        border-radius: 0 2px 2px 0;
+    }
+
+    /* Divider */
+    .nav-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.06);
+        margin: 10px 8px;
+    }
+
+    /* Footer */
+    .nav-footer {
+        padding: 12px 8px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        flex-shrink: 0;
+    }
+
+    .nav-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        overflow: hidden;
+    }
+
+    .nav-user-avatar {
+        width: 32px;
+        height: 32px;
+        background: #1d4ed8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .nav-user-info {
+        overflow: hidden;
+        opacity: 1;
+        transition: opacity 0.2s;
+    }
+
+    .nav-sidebar.collapsed .nav-user-info {
+        opacity: 0;
+        width: 0;
+    }
+
+    .nav-user-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nav-user-role {
+        font-size: 11px;
+        color: rgba(255,255,255,0.35);
+        white-space: nowrap;
+    }
+
+    .nav-logout {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: rgba(255,255,255,0.4);
+        font-size: 14px;
+        font-weight: 500;
+        width: 100%;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+    }
+
+        .nav-logout:hover {
+            background: rgba(239,68,68,0.12);
+            color: #f87171;
+        }
+
+        .nav-logout svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+    /* Mobile toggler — hide on desktop */
+    .nav-mobile-toggle {
+        display: none;
+    }
+
+    @@media (max-width: 640px) {
+        .nav-sidebar {
+            position: fixed;
+            z-index: 100;
+            transform: translateX(0);
+        }
+
+            .nav-sidebar.collapsed {
+                transform: translateX(-100%);
+                width: 240px;
+            }
+
+        .nav-mobile-toggle {
+            display: flex;
+        }
+    }
+
+    /* Animate items on load */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .nav-link-item {
+        animation: slideIn 0.3s ease both;
+    }
+
+        .nav-link-item:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .nav-link-item:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .nav-link-item:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .nav-link-item:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .nav-link-item:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .nav-link-item:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+</style>
+
+<div class="nav-sidebar @(collapsed ? "collapsed" : "")">
+
+    <!-- Header -->
+    <div class="nav-header">
+        <a href="" class="nav-logo">
+            <div class="nav-logo-icon">M</div>
+            <span class="nav-logo-text">Milo's SVI</span>
+        </a>
+        <button class="nav-toggle" @onclick="ToggleSidebar" title="@(collapsed ? "Expandir" : "Colapsar")">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+            </svg>
         </button>
     </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    <!-- Nav links -->
+    <div class="nav-body">
 
-<div class="nav-scrollable @(collapsed ? "collapsed" : "")" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                @if (!collapsed)
-                {
-                    <span>Inicio</span>
-                }
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ventas">
-                <span class="bi bi-cart-fill-nav-menu" aria-hidden="true"></span>
-                @if (!collapsed)
-                {
-                    <span>Ventas</span>
-                }
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="inventario">
-                <span class="bi bi-box-seam-nav-menu" aria-hidden="true"></span>
-                @if (!collapsed)
-                {
-                    <span>Inventario</span>
-                }
-            </NavLink>
-        </div>
+        <div class="nav-section-label">Principal</div>
 
-        @* Solo Admin *@
+        <NavLink class="nav-link-item" href="" Match="NavLinkMatch.All" ActiveClass="active">
+            <span class="nav-link-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+            </span>
+            <span class="nav-link-label">Inicio</span>
+        </NavLink>
+
+        <NavLink class="nav-link-item" href="ventas" ActiveClass="active">
+            <span class="nav-link-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1" />
+                    <circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" />
+                </svg>
+            </span>
+            <span class="nav-link-label">Ventas</span>
+        </NavLink>
+
+        <NavLink class="nav-link-item" href="inventario" ActiveClass="active">
+            <span class="nav-link-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                    <line x1="12" y1="22.08" x2="12" y2="12" />
+                </svg>
+            </span>
+            <span class="nav-link-label">Inventario</span>
+        </NavLink>
+
         @if (AuthState.EsAdmin)
         {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="historial">
-                    <span class="bi bi-clock-history-nav-menu" aria-hidden="true"></span>
-                    @if (!collapsed)
-                    {
-                        <span>Historial</span>
-                    }
-                </NavLink>
-            </div>
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="usuarios">
-                    <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span>
-                    @if (!collapsed)
-                    {
-                        <span>Usuarios</span>
-                    }
-                </NavLink>
-            </div>
-        }
-    </nav>
+            <div class="nav-divider"></div>
+            <div class="nav-section-label">Administración</div>
 
-    <div class="nav-item px-3">
-        <NavLink class="nav-link" href="reportes">
-            <span class="bi bi-bar-chart-fill-nav-menu" aria-hidden="true"></span>
-            @if (!collapsed)
-            {
-                <span>Reportes</span>
-            }
-        </NavLink>
+            <NavLink class="nav-link-item" href="historial" ActiveClass="active">
+                <span class="nav-link-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                </span>
+                <span class="nav-link-label">Historial</span>
+            </NavLink>
+
+            <NavLink class="nav-link-item" href="reportes" ActiveClass="active">
+                <span class="nav-link-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                </span>
+                <span class="nav-link-label">Reportes</span>
+            </NavLink>
+
+            <NavLink class="nav-link-item" href="usuarios" ActiveClass="active">
+                <span class="nav-link-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                        <path d="M16 3.13a4 4 0 010 7.75" />
+                    </svg>
+                </span>
+                <span class="nav-link-label">Usuarios</span>
+            </NavLink>
+        }
+
     </div>
 
-    <div style="position:absolute;bottom:0;left:0;right:0;padding:1rem;">
-        @if (!collapsed)
-        {
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;text-align:center;">
-                @AuthState.CurrentUser?.Nombre — @(AuthState.EsAdmin ? "Admin" : "Vendedor")
+    <!-- Footer -->
+    <div class="nav-footer">
+        <div class="nav-user">
+            <div class="nav-user-avatar">
+                @(AuthState.Nombre.Length > 0 ? AuthState.Nombre[..1] : "?")
             </div>
-        }
-        <button @onclick="CerrarSesion"
-                style="width:100%;padding:10px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.1);color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-            @if (!collapsed)
-            {
-                <span>🚪 Cerrar sesión</span>
-            }
-            else
-            {
+            <div class="nav-user-info">
+                <div class="nav-user-name">@AuthState.Nombre</div>
+                <div class="nav-user-role">@(AuthState.EsAdmin ? "Administrador" : "Vendedor")</div>
+            </div>
+        </div>
 
-                <span>🚪</span>
-            }
+        <button class="nav-logout" @onclick="CerrarSesion">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <span class="nav-link-label">Cerrar sesión</span>
         </button>
     </div>
+
 </div>
 
 @code {
     public bool collapsed = false;
     [Parameter] public EventCallback OnToggle { get; set; }
+
+    protected override void OnInitialized()
+    {
+        AuthState.OnChange += async () => await InvokeAsync(StateHasChanged);
+    }
 
     async Task ToggleSidebar()
     {
