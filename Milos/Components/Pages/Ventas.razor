@@ -8,10 +8,38 @@
 <PageTitle>Ventas — Milo's SVI</PageTitle>
 
 <style>
+    @@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Syne:wght@@700;800&display=swap');
+
+    .vta-root * {
+        box-sizing: border-box;
+    }
+
+    /* ── Root: same background as every other page ── */
+    .vta-root {
+        font-family: 'DM Sans', sans-serif;
+        background: #f0f4ff;
+        min-height: 100vh;
+        padding: 32px 36px 60px;
+        color: #0d1b4b;
+    }
+
+    /* ── Animations ── */
+    @@keyframes fadeDown {
+        from {
+            opacity: 0;
+            transform: translateY(-12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     @@keyframes fadeUp {
         from {
             opacity: 0;
-            transform: translateY(12px);
+            transform: translateY(10px);
         }
 
         to {
@@ -30,73 +58,188 @@
         }
     }
 
-    @@keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
+    @@keyframes backdropIn {
+        from {
+            opacity: 0;
         }
 
-        50% {
-            transform: scale(1.02);
+        to {
+            opacity: 1;
         }
     }
 
-    .ventas-page {
-        animation: fadeUp 0.4s ease both;
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
     }
 
-    .search-input {
-        width: 100%;
-        padding: 11px 16px 11px 42px;
-        border: 1.5px solid #e2e8f0;
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ── Page header ── */
+    .vta-header {
+        margin-bottom: 28px;
+        animation: fadeDown 0.45s ease both;
+    }
+
+        .vta-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+            color: #0d1b4b;
+        }
+
+        .vta-header p {
+            font-size: 13px;
+            color: #7c8db5;
+            margin: 0;
+        }
+
+    /* ── Error banner ── */
+    .vta-error {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        background: #fff1f2;
+        border: 1.5px solid #fecdd3;
+        border-left: 3px solid #e11d48;
         border-radius: 10px;
-        font-size: 14px;
-        background: white;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        outline: none;
-        box-sizing: border-box;
-        color: #1e293b;
+        padding: 12px 14px;
+        font-size: 13px;
+        color: #be123c;
+        margin-bottom: 20px;
+        animation: fadeUp 0.2s ease both;
     }
 
-        .search-input:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+        .vta-error svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: #e11d48;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+            margin-top: 1px;
         }
 
-        .search-input::placeholder {
-            color: #94a3b8;
-        }
+    /* ── Two-column layout ── */
+    .vta-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 20px;
+        align-items: start;
+    }
 
-    .search-wrapper {
+    .vta-left {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    /* ── White panels ── */
+    .panel {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        animation: fadeUp 0.45s ease both;
+    }
+
+    .panel-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* ── Search ── */
+    .search-wrap {
         position: relative;
     }
 
-    .search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
-        pointer-events: none;
-    }
+        .search-wrap svg {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            stroke: #94a3b8;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
 
-    .results-dropdown {
+    .search-input {
+        width: 100%;
+        padding: 11px 14px 11px 38px;
         border: 1.5px solid #e2e8f0;
         border-radius: 10px;
+        font-size: 13.5px;
+        font-family: 'DM Sans', sans-serif;
+        background: #f8faff;
+        color: #0d1b4b;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+        .search-input::placeholder {
+            color: #b0bcd4;
+        }
+
+        .search-input:focus {
+            border-color: #1a4bbd;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
+        }
+
+    /* ── Results dropdown ── */
+    .results-dropdown {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
         overflow: hidden;
-        margin-top: 6px;
+        margin-top: 8px;
         background: white;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-        animation: fadeUp 0.15s ease both;
+        box-shadow: 0 8px 28px rgba(26,75,189,0.1);
+        animation: slideDown 0.15s ease both;
     }
 
     .result-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 11px 16px;
+        padding: 12px 16px;
         cursor: pointer;
         border-bottom: 1px solid #f1f5f9;
         transition: background 0.12s;
+        gap: 12px;
     }
 
         .result-item:last-child {
@@ -104,36 +247,66 @@
         }
 
         .result-item:hover {
-            background: #f0f7ff;
+            background: #f0f4ff;
         }
 
             .result-item:hover .result-add {
                 opacity: 1;
+                transform: scale(1);
             }
+
+    .result-name {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .result-meta {
+        font-size: 11.5px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    .result-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a4bbd;
+        white-space: nowrap;
+    }
 
     .result-add {
         opacity: 0;
-        width: 24px;
-        height: 24px;
-        background: #2563eb;
-        border-radius: 6px;
+        transform: scale(0.85);
+        width: 26px;
+        height: 26px;
+        background: linear-gradient(135deg, #1a4bbd, #2f7bff);
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 16px;
-        transition: opacity 0.15s;
+        font-size: 18px;
+        font-weight: 400;
+        line-height: 1;
+        transition: opacity 0.15s, transform 0.15s;
         flex-shrink: 0;
     }
 
+    .no-results {
+        padding: 12px 4px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    /* ── Cart table ── */
     .cart-table {
         width: 100%;
         border-collapse: collapse;
     }
 
         .cart-table th {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 10.5px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: #94a3b8;
@@ -145,7 +318,7 @@
             padding: 12px 0;
             border-bottom: 1px solid #f8fafc;
             font-size: 13px;
-            color: #334155;
+            color: #374151;
             vertical-align: middle;
         }
 
@@ -153,38 +326,66 @@
             border-bottom: none;
         }
 
+    .cart-prod-name {
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .cart-prod-size {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* ── Qty controls ── */
+    .qty-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
     .qty-btn {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         border: 1.5px solid #e2e8f0;
-        border-radius: 6px;
+        border-radius: 7px;
         background: white;
         cursor: pointer;
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         font-size: 15px;
         color: #475569;
-        transition: border-color 0.15s, background 0.15s;
+        transition: border-color 0.15s, background 0.15s, color 0.15s;
         line-height: 1;
+        font-family: 'DM Sans', sans-serif;
     }
 
         .qty-btn:hover {
-            border-color: #2563eb;
+            border-color: #1a4bbd;
             background: #eff6ff;
-            color: #2563eb;
+            color: #1a4bbd;
         }
 
+    .qty-val {
+        font-weight: 700;
+        min-width: 22px;
+        text-align: center;
+        color: #0d1b4b;
+        font-size: 13.5px;
+    }
+
     .remove-btn {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
         border: none;
         background: none;
         cursor: pointer;
-        border-radius: 6px;
-        color: #cbd5e1;
+        border-radius: 7px;
+        color: #c7d7f8;
         font-size: 18px;
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         transition: background 0.15s, color 0.15s;
@@ -195,57 +396,232 @@
             color: #ef4444;
         }
 
-    .metodo-btn {
+    /* ── Empty cart ── */
+    .empty-cart {
+        text-align: center;
+        padding: 36px 16px;
+        color: #c7d7f8;
+    }
+
+        .empty-cart svg {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 10px;
+            stroke: #c7d7f8;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .empty-cart p {
+            font-size: 13px;
+            margin: 0;
+            color: #94a3b8;
+        }
+
+    /* ── Right panel (sticky) ── */
+    .vta-right {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        position: sticky;
+        top: 24px;
+        animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    .right-top-accent {
+        height: 3px;
+        background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa);
+        border-radius: 3px;
+        margin-bottom: 20px;
+    }
+
+    /* ── Total display ── */
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding-bottom: 18px;
+        border-bottom: 1.5px solid #f1f5f9;
+        margin-bottom: 18px;
+    }
+
+    .total-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+    }
+
+    .total-amount {
+        font-family: 'Syne', sans-serif;
+        font-size: 30px;
+        font-weight: 800;
+        color: #0d1b4b;
+        letter-spacing: -0.03em;
+    }
+
+    /* ── Payment methods ── */
+    .pay-section-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .pay-methods {
+        display: flex;
+        gap: 6px;
+    }
+
+    .pay-btn {
         flex: 1;
-        padding: 10px 8px;
+        padding: 10px 6px;
         border: 1.5px solid #e2e8f0;
         border-radius: 10px;
         background: white;
-        font-size: 13px;
-        font-weight: 500;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
         cursor: pointer;
         color: #64748b;
         transition: all 0.15s;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
     }
 
-        .metodo-btn.active {
-            border-color: #2563eb;
-            background: #eff6ff;
-            color: #1d4ed8;
+    .pay-btn-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 800;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pay-btn.active {
+        border-color: #1a4bbd;
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+        .pay-btn.active .pay-btn-icon {
+            background: linear-gradient(135deg, #1a4bbd, #2f7bff);
+            color: white;
         }
 
-        .metodo-btn:not(.active):hover {
-            border-color: #bfdbfe;
-            background: #f8fafc;
+    .pay-btn:not(.active) .pay-btn-icon {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .pay-btn:not(.active):hover {
+        border-color: #c7d7f8;
+        background: #f8faff;
+    }
+
+    /* ── Cash input ── */
+    .cash-section {
+        margin-top: 14px;
+        animation: fadeUp 0.2s ease both;
+    }
+
+    .cash-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .cash-input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        font-family: 'Syne', sans-serif;
+        color: #0d1b4b;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #f8faff;
+        letter-spacing: -0.02em;
+    }
+
+        .cash-input:focus {
+            border-color: #1a4bbd;
+            box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
+            background: white;
         }
 
-        .metodo-btn svg {
-            width: 18px;
-            height: 18px;
-        }
+    .cambio-card {
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
 
+    .cambio-ok {
+        background: #f0fdf4;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+
+    .cambio-err {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecdd3;
+    }
+
+    .cambio-card span:last-child {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    /* ── Cobrar button ── */
     .cobrar-btn {
         width: 100%;
-        padding: 14px;
+        padding: 15px;
         border: none;
         border-radius: 10px;
-        background: #2563eb;
+        background: linear-gradient(135deg, #0a1f6e 0%, #1a4bbd 60%, #2f7bff 100%);
         color: white;
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
+        font-family: 'DM Sans', sans-serif;
         cursor: pointer;
-        transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-        letter-spacing: -0.2px;
+        transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        letter-spacing: -0.01em;
+        margin-top: 18px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(26,75,189,0.3);
     }
 
+        .cobrar-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+        }
+
         .cobrar-btn:hover:not(:disabled) {
-            background: #1d4ed8;
-            box-shadow: 0 4px 16px rgba(37,99,235,0.25);
             transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(26,75,189,0.4);
         }
 
         .cobrar-btn:active:not(:disabled) {
@@ -256,9 +632,28 @@
             background: #e2e8f0;
             color: #94a3b8;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
-    .cancelar-btn {
+    .cobrar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .cobrar-inner svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    /* ── Cancel button ── */
+    .cancel-btn {
         width: 100%;
         padding: 11px;
         border: 1.5px solid #e2e8f0;
@@ -266,47 +661,409 @@
         background: white;
         color: #64748b;
         font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
         cursor: pointer;
         transition: background 0.15s, border-color 0.15s;
         margin-top: 8px;
     }
 
-        .cancelar-btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+        .cancel-btn:hover {
+            background: #f8faff;
+            border-color: #c7d7f8;
+            color: #374151;
         }
 
-    .cambio-card {
+    /* ── Cart badge ── */
+    .cart-badge {
+        font-size: 11px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    /* ── Modal backdrop ── */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,20,60,0.5);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+        animation: backdropIn 0.2s ease both;
+    }
+
+    /* ── Factura modal ── */
+    .factura-modal {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 92vh;
+        overflow-y: auto;
+        box-shadow: 0 28px 80px rgba(0,0,0,0.2);
+        animation: modalIn 0.3s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    .factura-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 22px;
+        border-bottom: 1.5px solid #e8edf7;
+        background: #f8faff;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .factura-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #16a34a;
+        border-radius: 50%;
+    }
+
+    .factura-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 16px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+        .btn svg {
+            width: 13px;
+            height: 13px;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0a1f6e 0%, #1a4bbd 60%, #2f7bff 100%);
+        color: white;
+        border: none;
+        box-shadow: 0 3px 12px rgba(26,75,189,0.25);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(26,75,189,0.35);
+        }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1.5px solid #e2e8f0;
+    }
+
+        .btn-outline:hover {
+            background: #f8faff;
+            border-color: #c7d7f8;
+            transform: translateY(-1px);
+        }
+
+    /* ── Factura content ── */
+    .factura-body {
+        padding: 28px;
+    }
+
+    .factura-brand-bar {
+        height: 3px;
+        background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa);
+        border-radius: 2px;
+        margin-bottom: 22px;
+    }
+
+    .factura-logo-wrap {
+        text-align: center;
+        margin-bottom: 22px;
+        padding-bottom: 20px;
+        border-bottom: 1.5px solid #e8edf7;
+    }
+
+    .factura-logo-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #0a1f6e, #2f7bff);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        margin: 0 auto 10px;
+    }
+
+    .factura-brand-name {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: #0d1b4b;
+        letter-spacing: -0.02em;
+        margin: 0 0 3px;
+    }
+
+    .factura-brand-sub {
+        font-size: 12px;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    .factura-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 18px;
+    }
+
+    .fac-label {
+        font-size: 10px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        margin-bottom: 3px;
+    }
+
+    .fac-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: #0d1b4b;
+        letter-spacing: -0.02em;
+    }
+
+    .fac-date {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .fac-time {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    .fac-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+
+    .fac-info-cell {
+        background: #f8faff;
+        border: 1px solid #e8edf7;
+        border-radius: 9px;
+        padding: 10px 12px;
+    }
+
+        .fac-info-cell .fac-label {
+            margin-bottom: 3px;
+        }
+
+    .fac-info-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .fac-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+        .fac-table thead tr {
+            border-bottom: 2px solid #e8edf7;
+        }
+
+        .fac-table thead th {
+            padding: 7px 0;
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+            .fac-table thead th:first-child {
+                text-align: left;
+            }
+
+            .fac-table thead th:not(:first-child) {
+                text-align: right;
+            }
+
+        .fac-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+            .fac-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .fac-table td {
+            padding: 9px 0;
+            vertical-align: middle;
+        }
+
+            .fac-table td:not(:first-child) {
+                text-align: right;
+                color: #64748b;
+            }
+
+            .fac-table td:last-child {
+                font-weight: 700;
+                color: #0d1b4b;
+            }
+
+    .fac-total-box {
+        background: #eff6ff;
+        border: 1.5px solid #bfdbfe;
         border-radius: 10px;
-        padding: 12px 14px;
+        padding: 14px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .fac-total-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #1e40af;
+    }
+
+    .fac-total-amount {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a4bbd;
+        letter-spacing: -0.02em;
+    }
+
+    .fac-cambio-row {
+        display: flex;
+        justify-content: space-between;
         font-size: 13px;
+        color: #64748b;
+        margin-bottom: 4px;
     }
 
-    .cambio-ok {
-        background: #f0fdf4;
-        color: #15803d;
-    }
-
-    .cambio-err {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .empty-cart {
-        text-align: center;
-        padding: 2.5rem 1rem;
-        color: #cbd5e1;
-    }
-
-        .empty-cart svg {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 8px;
+        .fac-cambio-row.green {
+            color: #16a34a;
+            font-weight: 600;
         }
+
+    .fac-footer {
+        text-align: center;
+        padding-top: 16px;
+        border-top: 1px dashed #e2e8f0;
+        margin-top: 14px;
+    }
+
+        .fac-footer p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0 0 3px;
+        }
+
+        .fac-footer small {
+            font-size: 10px;
+            color: #c7d7f8;
+        }
+
+    /* ── Success micro-modal ── */
+    .success-mini {
+        background: white;
+        border-radius: 16px;
+        padding: 36px 28px;
+        text-align: center;
+        max-width: 360px;
+        width: 100%;
+        animation: modalIn 0.3s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    .success-icon {
+        width: 56px;
+        height: 56px;
+        background: #f0fdf4;
+        border: 2px solid #bbf7d0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+        .success-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: none;
+            stroke: #16a34a;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .success-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        color: #0d1b4b;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+    }
+
+    .success-sub {
+        font-size: 13px;
+        color: #94a3b8;
+        margin: 0 0 22px;
+    }
+
+    /* ── Responsive ── */
+    @@media (max-width: 768px) {
+        .vta-root {
+            padding: 20px 16px 40px;
+        }
+
+        .vta-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .vta-right {
+            position: static;
+        }
+    }
 
     @@media print {
         body * {
@@ -332,117 +1089,127 @@
     }
 </style>
 
-@* MODAL FACTURA *@
+<!-- ══════════════════════════════════════════════
+     MODAL — FACTURA / ÉXITO
+══════════════════════════════════════════════ -->
 @if (mostrarExito)
 {
-    <div style="position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn 0.2s ease;">
+    <div class="modal-backdrop">
         @if (facturaActual == null)
         {
-            <div style="background:white;border-radius:16px;padding:2rem;text-align:center;max-width:380px;width:100%;animation:fadeUp 0.3s ease;">
-                <div style="width:52px;height:52px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px;">✅</div>
-                <p style="font-size:15px;font-weight:500;color:#1e293b;margin:0 0 1.5rem;">Venta registrada</p>
-                <button @onclick="NuevaVenta" style="width:100%;padding:12px;border:none;border-radius:10px;background:#2563eb;color:white;font-size:14px;font-weight:600;cursor:pointer;">Nueva venta</button>
+            <!-- Mini success -->
+            <div class="success-mini">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                </div>
+                <p class="success-title">¡Venta registrada!</p>
+                <p class="success-sub">La transacción se guardó correctamente.</p>
+                <button class="cobrar-btn" style="margin-top:0;" @onclick="NuevaVenta">
+                    <span class="cobrar-inner">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                        Nueva venta
+                    </span>
+                </button>
             </div>
         }
         else
         {
-            <div style="background:white;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18);animation:fadeUp 0.3s ease;">
-
-                <div class="no-print" style="display:flex;gap:8px;padding:1rem 1.5rem;border-bottom:1px solid #f1f5f9;justify-content:space-between;align-items:center;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;"></div>
-                        <span style="font-size:14px;font-weight:500;color:#1e293b;">Factura generada</span>
+            <!-- Full factura -->
+            <div class="factura-modal">
+                <div class="factura-toolbar no-print">
+                    <div class="factura-status">
+                        <div class="status-dot"></div>
+                        Factura generada · @facturaActual.NumeroFactura
                     </div>
-                    <div style="display:flex;gap:6px;">
-                        <button @onclick="ImprimirFactura"
-                                style="display:flex;align-items:center;gap:6px;padding:8px 14px;border:none;border-radius:8px;background:#2563eb;color:white;font-size:13px;font-weight:500;cursor:pointer;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                    <div class="factura-actions">
+                        <button class="btn btn-outline" @onclick="NuevaVenta">Nueva venta</button>
+                        <button class="btn btn-primary" @onclick="ImprimirFactura">
+                            <svg viewBox="0 0 24 24" stroke="white"><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
                             Imprimir / PDF
-                        </button>
-                        <button @onclick="NuevaVenta"
-                                style="padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;font-size:13px;color:#475569;cursor:pointer;">
-                            Nueva venta
                         </button>
                     </div>
                 </div>
 
-                <div id="factura-print" style="padding:2rem;">
-                    <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid #2563eb;">
-                        <div style="width:40px;height:40px;background:#2563eb;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;font-weight:800;color:white;">M</div>
-                        <h1 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 3px;letter-spacing:-0.5px;">Milo's SVI</h1>
-                        <p style="font-size:12px;color:#94a3b8;margin:0;">Santa Ana, El Salvador</p>
+                <div id="factura-print" class="factura-body">
+                    <div class="factura-brand-bar"></div>
+
+                    <div class="factura-logo-wrap">
+                        <div class="factura-logo-icon">M</div>
+                        <p class="factura-brand-name">Milo's SVI</p>
+                        <p class="factura-brand-sub">Santa Ana, El Salvador</p>
                     </div>
 
-                    <div style="display:flex;justify-content:space-between;margin-bottom:1.25rem;">
+                    <div class="factura-meta">
                         <div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Factura</div>
-                            <div style="font-size:20px;font-weight:700;color:#0f172a;">@facturaActual.NumeroFactura</div>
+                            <div class="fac-label">Número de factura</div>
+                            <div class="fac-num">@facturaActual.NumeroFactura</div>
                         </div>
                         <div style="text-align:right;">
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Fecha</div>
-                            <div style="font-size:13px;font-weight:500;color:#1e293b;">@facturaActual.Fecha?.ToString("dd/MM/yyyy")</div>
-                            <div style="font-size:12px;color:#94a3b8;">@facturaActual.Fecha?.ToString("HH:mm") hrs</div>
+                            <div class="fac-label">Fecha y hora</div>
+                            <div class="fac-date">@facturaActual.Fecha?.ToString("dd/MM/yyyy")</div>
+                            <div class="fac-time">@facturaActual.Fecha?.ToString("HH:mm") hrs</div>
                         </div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;">
-                        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
-                            <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em;">Vendedor</div>
-                            <div style="font-size:13px;font-weight:500;color:#1e293b;">@(string.IsNullOrEmpty(AuthState.Nombre) ? "—" : AuthState.Nombre)</div>
+                    <div class="fac-info-grid">
+                        <div class="fac-info-cell">
+                            <div class="fac-label">Vendedor</div>
+                            <div class="fac-info-value">@(string.IsNullOrEmpty(AuthState.Nombre) ? "—" : AuthState.Nombre)</div>
                         </div>
-                        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px;">
-                            <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em;">Pago</div>
-                            <div style="font-size:13px;font-weight:500;color:#1e293b;">@metodoPago</div>
+                        <div class="fac-info-cell">
+                            <div class="fac-label">Método de pago</div>
+                            <div class="fac-info-value">@metodoPago</div>
                         </div>
                     </div>
 
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.25rem;">
+                    <table class="fac-table">
                         <thead>
-                            <tr style="border-bottom:1.5px solid #e2e8f0;">
-                                <th style="text-align:left;padding:6px 0;font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Producto</th>
-                                <th style="text-align:center;padding:6px 0;font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:40px;">Cant.</th>
-                                <th style="text-align:right;padding:6px 0;font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:70px;">P.Unit.</th>
-                                <th style="text-align:right;padding:6px 0;font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:70px;">Total</th>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>P. Unit.</th>
+                                <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in itemsFactura)
                             {
-                                <tr style="border-bottom:1px solid #f8fafc;">
-                                    <td style="padding:9px 0;">
-                                        <div style="font-weight:500;color:#1e293b;">@item.Nombre</div>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#0d1b4b;">@item.Nombre</div>
                                         @if (item.Talla != null)
                                         {
                                             <div style="font-size:11px;color:#94a3b8;">Talla @item.Talla</div>
                                         }
                                     </td>
-                                    <td style="padding:9px 0;text-align:center;color:#64748b;">@item.Cantidad</td>
-                                    <td style="padding:9px 0;text-align:right;color:#64748b;">$@item.PrecioUnitario.ToString("N2")</td>
-                                    <td style="padding:9px 0;text-align:right;font-weight:600;color:#1e293b;">$@item.Subtotal.ToString("N2")</td>
+                                    <td>@item.Cantidad</td>
+                                    <td>$@item.PrecioUnitario.ToString("N2")</td>
+                                    <td>$@item.Subtotal.ToString("N2")</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
 
-                    <div style="border-top:1.5px solid #e2e8f0;padding-top:1rem;">
-                        @if (metodoPago == "Efectivo" && ultimoMontoPagado > 0)
-                        {
-                            <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748b;margin-bottom:6px;">
-                                <span>Recibido</span><span>$@ultimoMontoPagado.ToString("N2")</span>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;font-size:13px;color:#15803d;margin-bottom:10px;">
-                                <span>Cambio</span><span>$@ultimoCambio.ToString("N2")</span>
-                            </div>
-                        }
-                        <div style="display:flex;justify-content:space-between;align-items:center;background:#eff6ff;border-radius:8px;padding:12px 14px;">
-                            <span style="font-size:13px;font-weight:600;color:#1e40af;">Total pagado</span>
-                            <span style="font-size:20px;font-weight:700;color:#1d4ed8;">$@ultimoTotal.ToString("N2")</span>
+                    @if (metodoPago == "Efectivo" && ultimoMontoPagado > 0)
+                    {
+                        <div class="fac-cambio-row">
+                            <span>Recibido</span>
+                            <span>$@ultimoMontoPagado.ToString("N2")</span>
                         </div>
+                        <div class="fac-cambio-row green">
+                            <span>Cambio</span>
+                            <span>$@ultimoCambio.ToString("N2")</span>
+                        </div>
+                    }
+
+                    <div class="fac-total-box">
+                        <span class="fac-total-label">Total pagado</span>
+                        <span class="fac-total-amount">$@ultimoTotal.ToString("N2")</span>
                     </div>
 
-                    <div style="text-align:center;margin-top:1.5rem;padding-top:1rem;border-top:1px dashed #e2e8f0;">
-                        <p style="font-size:12px;color:#94a3b8;margin:0 0 3px;">Gracias por su compra</p>
-                        <p style="font-size:10px;color:#cbd5e1;margin:0;">@facturaActual.NumeroFactura · @facturaActual.Fecha?.ToString("dd/MM/yyyy HH:mm")</p>
+                    <div class="fac-footer">
+                        <p>¡Gracias por su compra en Milo's SVI!</p>
+                        <small>@facturaActual.NumeroFactura · @facturaActual.Fecha?.ToString("dd/MM/yyyy HH:mm")</small>
                     </div>
                 </div>
             </div>
@@ -450,32 +1217,41 @@
     </div>
 }
 
-@* INTERFAZ PRINCIPAL *@
-<div class="ventas-page" style="padding:1.5rem 0;">
+<!-- ══════════════════════════════════════════════
+     CONTENIDO PRINCIPAL
+══════════════════════════════════════════════ -->
+<div class="vta-root">
 
-    <div style="margin-bottom:1.5rem;">
-        <h1 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 2px;letter-spacing:-0.4px;">Nueva venta</h1>
-        <p style="font-size:13px;color:#94a3b8;margin:0;">@DateTime.Now.ToString("dddd, dd 'de' MMMM yyyy")</p>
+    <!-- Header -->
+    <div class="vta-header">
+        <h1>Nueva venta</h1>
+        <p>@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
     </div>
 
+    <!-- Error banner -->
     @if (errorGeneral != null)
     {
-        <div style="background:#fef2f2;border:1.5px solid #fecaca;color:#dc2626;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:1rem;animation:fadeUp 0.2s ease;">
+        <div class="vta-error">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             @errorGeneral
         </div>
     }
 
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+    <div class="vta-layout">
 
-        @* Panel izquierdo *@
-        <div style="display:flex;flex-direction:column;gap:14px;">
+        <!-- ── Left panel ── -->
+        <div class="vta-left">
 
-            @* Buscador *@
-            <div style="background:white;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;">
-                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:12px;">Agregar producto</div>
-                <div class="search-wrapper">
-                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                    <input class="search-input" @bind="busqueda" @bind:event="oninput" @bind:after="BuscarProductos" placeholder="Escribe el nombre del producto..." />
+            <!-- Buscador -->
+            <div class="panel" style="animation-delay:0.05s;">
+                <div class="panel-label">Agregar producto</div>
+                <div class="search-wrap">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                    <input class="search-input"
+                           @bind="busqueda"
+                           @bind:event="oninput"
+                           @bind:after="BuscarProductos"
+                           placeholder="Escribe el nombre del producto..." />
                 </div>
 
                 @if (resultadosBusqueda.Any())
@@ -484,22 +1260,22 @@
                         @foreach (var p in resultadosBusqueda)
                         {
                             var agotado = p.Stock == 0;
-                            <div class="result-item" style="opacity:@(agotado ? "0.5" : "1");cursor:@(agotado ? "not-allowed" : "pointer");"
+                            <div class="result-item"
+                                 style="opacity:@(agotado ? "0.5" : "1");cursor:@(agotado ? "not-allowed" : "pointer");"
                                  @onclick="() => { if (!agotado) AgregarProducto(p); }">
-                                <div>
-                                    <div style="font-size:14px;font-weight:500;color:#1e293b;">@p.Nombre @(p.Talla != null ? $"· T. {p.Talla}" : "")</div>
-                                    <div style="font-size:12px;color:#94a3b8;">@p.Categoria?.NombreCategoria · @p.Stock unid. disponibles</div>
+                                <div style="flex:1;min-width:0;">
+                                    <div class="result-name">@p.Nombre @(p.Talla != null ? $"· T.{p.Talla}" : "")</div>
+                                    <div class="result-meta">@(p.Categoria?.NombreCategoria ?? "Sin cat.") · @p.Stock unid.</div>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="font-size:14px;font-weight:600;color:#2563eb;">$@p.PrecioUnitario.ToString("N2")</span>
+                                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                                    <span class="result-price">$@p.PrecioUnitario.ToString("N2")</span>
                                     @if (!agotado)
                                     {
                                         <div class="result-add">+</div>
                                     }
                                     else
                                     {
-
-                                        <span style="font-size:11px;color:#ef4444;background:#fef2f2;padding:2px 8px;border-radius:4px;">Sin stock</span>
+                                        <span style="font-size:11px;color:#ef4444;background:#fef2f2;padding:2px 8px;border-radius:5px;font-weight:600;">Sin stock</span>
                                     }
                                 </div>
                             </div>
@@ -508,25 +1284,25 @@
                 }
                 else if (busqueda.Length > 1)
                 {
-                    <div style="padding:10px 4px;font-size:13px;color:#94a3b8;">Sin resultados para "@busqueda"</div>
+                    <div class="no-results">Sin resultados para "<strong>@busqueda</strong>"</div>
                 }
             </div>
 
-            @* Carrito *@
-            <div style="background:white;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;">Carrito</div>
+            <!-- Carrito -->
+            <div class="panel" style="animation-delay:0.1s;">
+                <div class="panel-label">
+                    <span>Carrito</span>
                     @if (carrito.Any())
                     {
-                        <span style="font-size:12px;background:#eff6ff;color:#1d4ed8;padding:2px 10px;border-radius:20px;font-weight:500;">@carrito.Count producto@(carrito.Count != 1 ? "s" : "")</span>
+                        <span class="cart-badge">@carrito.Count producto@(carrito.Count != 1 ? "s" : "")</span>
                     }
                 </div>
 
                 @if (!carrito.Any())
                 {
                     <div class="empty-cart">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" /></svg>
-                        <p style="font-size:13px;margin:0;">Agrega productos desde el buscador</p>
+                        <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" /></svg>
+                        <p>Agrega productos desde el buscador de arriba</p>
                     </div>
                 }
                 else
@@ -535,7 +1311,7 @@
                         <thead>
                             <tr>
                                 <th style="text-align:left;">Producto</th>
-                                <th style="text-align:center;width:100px;">Cantidad</th>
+                                <th style="text-align:center;width:110px;">Cantidad</th>
                                 <th style="text-align:right;">Precio</th>
                                 <th style="text-align:right;">Subtotal</th>
                                 <th style="width:32px;"></th>
@@ -546,21 +1322,21 @@
                             {
                                 <tr>
                                     <td>
-                                        <div style="font-weight:500;color:#1e293b;">@item.Producto.Nombre</div>
+                                        <div class="cart-prod-name">@item.Producto.Nombre</div>
                                         @if (item.Producto.Talla != null)
                                         {
-                                            <div style="font-size:11px;color:#94a3b8;">Talla @item.Producto.Talla</div>
+                                            <div class="cart-prod-size">Talla @item.Producto.Talla</div>
                                         }
                                     </td>
-                                    <td style="text-align:center;">
-                                        <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                                    <td>
+                                        <div class="qty-wrap">
                                             <button class="qty-btn" @onclick="() => CambiarCantidad(item, -1)">−</button>
-                                            <span style="font-weight:600;min-width:20px;text-align:center;">@item.Cantidad</span>
+                                            <span class="qty-val">@item.Cantidad</span>
                                             <button class="qty-btn" @onclick="() => CambiarCantidad(item, 1)">+</button>
                                         </div>
                                     </td>
                                     <td style="text-align:right;color:#64748b;">$@item.Producto.PrecioUnitario.ToString("N2")</td>
-                                    <td style="text-align:right;font-weight:600;color:#1e293b;">$@item.Subtotal.ToString("N2")</td>
+                                    <td style="text-align:right;font-weight:700;color:#0d1b4b;">$@item.Subtotal.ToString("N2")</td>
                                     <td style="text-align:right;">
                                         <button class="remove-btn" @onclick="() => QuitarProducto(item)">×</button>
                                     </td>
@@ -572,81 +1348,104 @@
             </div>
         </div>
 
-        @* Panel derecho — Cobro *@
-        <div style="background:white;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.25rem;position:sticky;top:1rem;">
+        <!-- ── Right panel — Cobro ── -->
+        <div class="vta-right">
+            <div class="right-top-accent"></div>
 
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:16px;">Resumen</div>
-
-            @* Total *@
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;padding-bottom:16px;border-bottom:1.5px solid #f1f5f9;">
-                <span style="font-size:13px;color:#64748b;">Total</span>
-                <span style="font-size:26px;font-weight:700;color:#0f172a;letter-spacing:-1px;">$@totalVenta.ToString("N2")</span>
+            <!-- Total -->
+            <div class="total-row">
+                <span class="total-label">Total</span>
+                <span class="total-amount">$@totalVenta.ToString("N2")</span>
             </div>
 
-            @* Métodos de pago *@
-            <div style="margin-bottom:16px;">
-                <div style="font-size:12px;color:#64748b;margin-bottom:8px;">Método de pago</div>
-                <div style="display:flex;gap:6px;">
-                    @foreach (var m in new[] { ("Efectivo", "M", "#15803d"), ("Tarjeta", "T", "#1d4ed8"), ("Transferencia", "Tr", "#7c3aed") })
-                    {
-                        var activo = metodoPago == m.Item1;
-                        <button class="metodo-btn @(activo ? "active" : "")" @onclick='() => { metodoPago = m.Item1; montoPagado = 0; }'>
-                            <span style="font-size:11px;font-weight:700;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:@(activo? m.Item3: "#f1f5f9");color:@(activo ? "white" : "#64748b");">@m.Item2</span>
-                            <span style="font-size:11px;">@m.Item1</span>
-                        </button>
-                    }
-                </div>
+            <!-- Métodos de pago -->
+            <p class="pay-section-label">Método de pago</p>
+            <div class="pay-methods">
+                @foreach (var m in new[] {
+                                ("Efectivo",       "EF", "#15803d"),
+                                ("Tarjeta",        "TC", "#1d4ed8"),
+                                ("Transferencia",  "TR", "#7c3aed")
+                                })
+                {
+                    var activo = metodoPago == m.Item1;
+                    <button class="pay-btn @(activo ? "active" : "")"
+                            @onclick='() => { metodoPago = m.Item1; montoPagado = 0; }'>
+                        <span class="pay-btn-icon"
+                              style="background:@(activo? m.Item3: "#f1f5f9");color:@(activo ? "white" : "#64748b");">
+                            @m.Item2
+                        </span>
+                        <span>@m.Item1</span>
+                    </button>
+                }
             </div>
 
-            @* Efectivo *@
+            <!-- Campo efectivo -->
             @if (metodoPago == "Efectivo")
             {
-                <div style="margin-bottom:14px;animation:fadeUp 0.2s ease;">
-                    <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Monto recibido</div>
-                    <input type="number" step="0.01" @bind="montoPagado" @bind:event="oninput"
-                           style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:16px;font-weight:600;color:#0f172a;outline:none;box-sizing:border-box;transition:border-color 0.15s;"
-                           onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'" />
+                <div class="cash-section">
+                    <p class="cash-label">Monto recibido</p>
+                    <input class="cash-input"
+                           type="number" step="0.01"
+                           @bind="montoPagado"
+                           @bind:event="oninput"
+                           placeholder="0.00" />
 
                     @if (montoPagado > 0)
                     {
                         @if (cambio >= 0)
                         {
                             <div class="cambio-card cambio-ok">
-                                <span style="font-weight:500;">Cambio</span>
-                                <span style="font-size:16px;font-weight:700;">$@cambio.ToString("N2")</span>
+                                <span>Cambio</span>
+                                <span>$@cambio.ToString("N2")</span>
                             </div>
                         }
                         else
                         {
                             <div class="cambio-card cambio-err">
                                 <span>Faltan</span>
-                                <span style="font-weight:700;">$@Math.Abs(cambio).ToString("N2")</span>
+                                <span>$@Math.Abs(cambio).ToString("N2")</span>
                             </div>
                         }
                     }
                 </div>
             }
 
-            @* Botón cobrar *@
-            <button class="cobrar-btn" @onclick="RegistrarVenta"
+            <!-- Cobrar -->
+            <button class="cobrar-btn"
+                    @onclick="RegistrarVenta"
                     disabled="@(carrito.Count == 0 || procesando || (metodoPago == "Efectivo" && cambio < 0))">
-                @if (procesando)
-                {
-                    <span>Procesando...</span>
-                }
-                else
-                {
-                    <span>Cobrar $@totalVenta.ToString("N2")</span>
-                }
+                <span class="cobrar-inner">
+                    @if (procesando)
+                    {
+                        <svg viewBox="0 0 24 24" stroke="white" style="animation:spin .7s linear infinite;">
+                            <circle cx="12" cy="12" r="10" stroke-opacity=".25" />
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1" />
+                        </svg>
+                        <span>Procesando...</span>
+                    }
+                    else
+                    {
+                        <svg viewBox="0 0 24 24" stroke="white"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg>
+                        <span>Cobrar $@totalVenta.ToString("N2")</span>
+                    }
+                </span>
             </button>
 
             @if (carrito.Any())
             {
-                <button class="cancelar-btn" @onclick="LimpiarCarrito">Cancelar venta</button>
+                <button class="cancel-btn" @onclick="LimpiarCarrito">Cancelar venta</button>
             }
         </div>
     </div>
 </div>
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
 
 @code {
     decimal ultimoCambio;
@@ -658,6 +1457,7 @@
         public int Cantidad { get; set; }
         public decimal Subtotal => Producto.PrecioUnitario * Cantidad;
     }
+
     record ItemFactura(string Nombre, string? Talla, int Cantidad, decimal PrecioUnitario, decimal Subtotal);
 
     List<ItemCarrito> carrito = new();
@@ -690,7 +1490,7 @@
     {
         var item = carrito.FirstOrDefault(i => i.Producto.IdProducto == p.IdProducto);
         if (item != null) { if (item.Cantidad < p.Stock) item.Cantidad++; }
-        else { carrito.Add(new ItemCarrito { Producto = p, Cantidad = 1 }); }
+        else carrito.Add(new ItemCarrito { Producto = p, Cantidad = 1 });
         busqueda = "";
         resultadosBusqueda.Clear();
     }
@@ -728,7 +1528,6 @@
             var venta = new Venta
             {
                 IdUsuario = AuthState.IdUsuario,
-
                 IdPago = pago.IdPago,
                 FechaPedido = DateTime.Now,
                 Total = totalVenta,
@@ -754,9 +1553,7 @@
             Db.Facturas.Add(factura);
             await Db.SaveChangesAsync();
 
-            itemsFactura = carrito.Select(c => new ItemFactura(
-                c.Producto.Nombre, c.Producto.Talla, c.Cantidad,
-                c.Producto.PrecioUnitario, c.Subtotal)).ToList();
+            itemsFactura = carrito.Select(c => new ItemFactura(c.Producto.Nombre, c.Producto.Talla, c.Cantidad, c.Producto.PrecioUnitario, c.Subtotal)).ToList();
             ultimoTotal = totalVenta;
             ultimoCambio = cambio > 0 ? cambio : 0;
             ultimoMontoPagado = montoPagado;
@@ -770,7 +1567,7 @@
         }
         catch (Exception ex)
         {
-            errorGeneral = "Error: " + ex.Message;
+            errorGeneral = "Error al registrar la venta: " + ex.Message;
         }
         finally
         {

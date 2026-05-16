@@ -2,42 +2,29 @@
 @inject NavigationManager Nav
 
 <style>
-    .nav-sidebar {
-        width: 240px;
-        height: 100vh;
+    .topbar {
         background: #0f172a;
-        display: flex;
-        flex-direction: column;
-        position: sticky;
-        top: 0;
-        transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-    }
-
-        .nav-sidebar.collapsed {
-            width: 64px;
-        }
-
-    /* Header */
-    .nav-header {
+        height: 60px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0 16px;
-        height: 64px;
+        padding: 0 28px;
+        gap: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
         border-bottom: 1px solid rgba(255,255,255,0.06);
-        flex-shrink: 0;
     }
 
-    .nav-logo {
+    .topbar-brand {
         display: flex;
         align-items: center;
         gap: 10px;
         text-decoration: none;
-        overflow: hidden;
+        margin-right: 20px;
+        flex-shrink: 0;
     }
 
-    .nav-logo-icon {
+    .topbar-brand-icon {
         width: 32px;
         height: 32px;
         background: #2563eb;
@@ -45,444 +32,294 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
         font-size: 14px;
         font-weight: 800;
         color: white;
-        letter-spacing: -0.5px;
     }
 
-    .nav-logo-text {
+    .topbar-brand-text {
         font-size: 15px;
         font-weight: 700;
         color: white;
         letter-spacing: -0.3px;
         white-space: nowrap;
-        opacity: 1;
-        transition: opacity 0.2s ease;
     }
 
-    .nav-sidebar.collapsed .nav-logo-text {
-        opacity: 0;
-        width: 0;
-    }
-
-    .nav-toggle {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 6px;
-        border-radius: 6px;
-        color: rgba(255,255,255,0.4);
-        transition: background 0.15s, color 0.15s;
-        flex-shrink: 0;
+    /* Nav pills */
+    .topbar-nav {
         display: flex;
         align-items: center;
-        justify-content: center;
-    }
-
-        .nav-toggle:hover {
-            background: rgba(255,255,255,0.08);
-            color: white;
-        }
-
-        .nav-toggle svg {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.25s ease;
-        }
-
-    .nav-sidebar.collapsed .nav-toggle svg {
-        transform: rotate(180deg);
-    }
-
-    /* Scrollable area */
-    .nav-body {
+        gap: 2px;
         flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 12px 8px;
-        scrollbar-width: none;
     }
 
-        .nav-body::-webkit-scrollbar {
-            display: none;
-        }
-
-    /* Section labels */
-    .nav-section-label {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.25);
-        padding: 8px 8px 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        transition: opacity 0.2s ease;
-    }
-
-    .nav-sidebar.collapsed .nav-section-label {
-        opacity: 0;
-    }
-
-    /* Nav links */
-    .nav-link-item {
+    .nav-pill {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 9px 10px;
+        gap: 7px;
+        padding: 7px 14px;
         border-radius: 8px;
         text-decoration: none;
-        color: rgba(255,255,255,0.55);
-        font-size: 14px;
+        color: rgba(255,255,255,0.5);
+        font-size: 13.5px;
         font-weight: 500;
         white-space: nowrap;
-        transition: background 0.15s ease, color 0.15s ease;
-        position: relative;
-        margin-bottom: 2px;
+        border: none;
+        background: none;
         cursor: pointer;
+        transition: background 0.15s, color 0.15s;
     }
 
-        .nav-link-item:hover {
+        .nav-pill svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .nav-pill:hover {
             background: rgba(255,255,255,0.07);
-            color: rgba(255,255,255,0.9);
+            color: rgba(255,255,255,0.85);
         }
 
-        .nav-link-item.active {
-            background: rgba(37,99,235,0.2);
+        .nav-pill.active {
+            background: rgba(37,99,235,0.25);
             color: #60a5fa;
+            border: 1px solid rgba(37,99,235,0.3);
         }
 
-            .nav-link-item.active .nav-link-icon {
-                color: #3b82f6;
-            }
-
-    .nav-link-icon {
-        width: 20px;
+    .nav-divider-v {
+        width: 1px;
         height: 20px;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.15s;
-    }
-
-        .nav-link-icon svg {
-            width: 18px;
-            height: 18px;
-        }
-
-    .nav-link-label {
-        opacity: 1;
-        transition: opacity 0.2s ease;
-        overflow: hidden;
-    }
-
-    .nav-sidebar.collapsed .nav-link-label {
-        opacity: 0;
-        width: 0;
-    }
-
-    /* Active indicator */
-    .nav-link-item.active::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 3px;
-        height: 60%;
-        background: #3b82f6;
-        border-radius: 0 2px 2px 0;
-    }
-
-    /* Divider */
-    .nav-divider {
-        height: 1px;
-        background: rgba(255,255,255,0.06);
-        margin: 10px 8px;
-    }
-
-    /* Footer */
-    .nav-footer {
-        padding: 12px 8px;
-        border-top: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.1);
+        margin: 0 6px;
         flex-shrink: 0;
     }
 
-    .nav-user {
+    /* Section label inside nav */
+    .nav-section-chip {
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.2);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0 6px;
+        flex-shrink: 0;
+    }
+
+    /* Right side */
+    .topbar-right {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        margin-bottom: 6px;
-        overflow: hidden;
+        margin-left: auto;
+        flex-shrink: 0;
     }
 
-    .nav-user-avatar {
-        width: 32px;
-        height: 32px;
-        background: #1d4ed8;
+    .topbar-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
         border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .topbar-avatar {
+        width: 28px;
+        height: 28px;
+        background: #1d4ed8;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         color: white;
         flex-shrink: 0;
     }
 
-    .nav-user-info {
-        overflow: hidden;
-        opacity: 1;
-        transition: opacity 0.2s;
-    }
-
-    .nav-sidebar.collapsed .nav-user-info {
-        opacity: 0;
-        width: 0;
-    }
-
-    .nav-user-name {
+    .topbar-user-name {
         font-size: 13px;
-        font-weight: 600;
-        color: rgba(255,255,255,0.9);
+        font-weight: 500;
+        color: rgba(255,255,255,0.8);
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
-    .nav-user-role {
+    .topbar-user-role {
         font-size: 11px;
-        color: rgba(255,255,255,0.35);
+        color: rgba(255,255,255,0.3);
         white-space: nowrap;
     }
 
-    .nav-logout {
+    .topbar-logout {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 9px 10px;
+        gap: 6px;
+        padding: 7px 12px;
         border-radius: 8px;
         background: none;
-        border: none;
+        border: 1px solid rgba(255,255,255,0.1);
         cursor: pointer;
         color: rgba(255,255,255,0.4);
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
-        width: 100%;
-        transition: background 0.15s, color 0.15s;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
         white-space: nowrap;
     }
 
-        .nav-logout:hover {
+        .topbar-logout svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .topbar-logout:hover {
             background: rgba(239,68,68,0.12);
             color: #f87171;
+            border-color: rgba(239,68,68,0.25);
         }
 
-        .nav-logout svg {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
+    /* Mobile: collapse nav pills into hamburger */
+    @@media (max-width: 768px) {
+        .topbar-nav {
+            display: none;
         }
 
-    /* Mobile toggler — hide on desktop */
-    .nav-mobile-toggle {
-        display: none;
-    }
-
-    @@media (max-width: 640px) {
-        .nav-sidebar {
-            position: fixed;
-            z-index: 100;
-            transform: translateX(0);
+        .nav-section-chip {
+            display: none;
         }
 
-            .nav-sidebar.collapsed {
-                transform: translateX(-100%);
-                width: 240px;
-            }
+        .nav-divider-v {
+            display: none;
+        }
 
-        .nav-mobile-toggle {
-            display: flex;
+        .topbar-brand-text {
+            display: none;
+        }
+
+        .topbar-user-role {
+            display: none;
         }
     }
 
-    /* Animate items on load */
-    @@keyframes slideIn {
+    /* Animate on load */
+    @@keyframes slideDown {
         from {
             opacity: 0;
-            transform: translateX(-8px);
+            transform: translateY(-8px);
         }
 
         to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
         }
     }
 
-    .nav-link-item {
-        animation: slideIn 0.3s ease both;
+    .topbar {
+        animation: slideDown 0.3s ease both;
     }
-
-        .nav-link-item:nth-child(1) {
-            animation-delay: 0.05s;
-        }
-
-        .nav-link-item:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-
-        .nav-link-item:nth-child(3) {
-            animation-delay: 0.15s;
-        }
-
-        .nav-link-item:nth-child(4) {
-            animation-delay: 0.2s;
-        }
-
-        .nav-link-item:nth-child(5) {
-            animation-delay: 0.25s;
-        }
-
-        .nav-link-item:nth-child(6) {
-            animation-delay: 0.3s;
-        }
 </style>
 
-<div class="nav-sidebar @(collapsed ? "collapsed" : "")">
+<nav class="topbar">
 
-    <!-- Header -->
-    <div class="nav-header">
-        <a href="" class="nav-logo">
-            <div class="nav-logo-icon">M</div>
-            <span class="nav-logo-text">Milo's SVI</span>
-        </a>
-        <button class="nav-toggle" @onclick="ToggleSidebar" title="@(collapsed ? "Expandir" : "Colapsar")">
+    <!-- Brand -->
+    <a href="" class="topbar-brand">
+        <div class="topbar-brand-icon">M</div>
+        <span class="topbar-brand-text">Milo's</span>
+    </a>
+
+    <!-- Nav pills -->
+    <div class="topbar-nav">
+        <span class="nav-section-chip">Principal</span>
+
+        <NavLink class="nav-pill" href="" Match="NavLinkMatch.All" ActiveClass="active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-        </button>
-    </div>
-
-    <!-- Nav links -->
-    <div class="nav-body">
-
-        <div class="nav-section-label">Principal</div>
-
-        <NavLink class="nav-link-item" href="" Match="NavLinkMatch.All" ActiveClass="active">
-            <span class="nav-link-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-            </span>
-            <span class="nav-link-label">Inicio</span>
+            Inicio
         </NavLink>
 
-        <NavLink class="nav-link-item" href="ventas" ActiveClass="active">
-            <span class="nav-link-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="9" cy="21" r="1" />
-                    <circle cx="20" cy="21" r="1" />
-                    <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" />
-                </svg>
-            </span>
-            <span class="nav-link-label">Ventas</span>
+        <NavLink class="nav-pill" href="ventas" ActiveClass="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.72a2 2 0 001.99-1.61L23 6H6" />
+            </svg>
+            Ventas
         </NavLink>
 
-        <NavLink class="nav-link-item" href="inventario" ActiveClass="active">
-            <span class="nav-link-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-            </span>
-            <span class="nav-link-label">Inventario</span>
+        <NavLink class="nav-pill" href="inventario" ActiveClass="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            Inventario
         </NavLink>
 
         @if (AuthState.EsAdmin)
         {
-            <div class="nav-divider"></div>
-            <div class="nav-section-label">Administración</div>
+            <div class="nav-divider-v"></div>
+            <span class="nav-section-chip">Admin</span>
 
-            <NavLink class="nav-link-item" href="historial" ActiveClass="active">
-                <span class="nav-link-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                </span>
-                <span class="nav-link-label">Historial</span>
+            <NavLink class="nav-pill" href="historial" ActiveClass="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Historial
             </NavLink>
 
-            <NavLink class="nav-link-item" href="reportes" ActiveClass="active">
-                <span class="nav-link-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10" />
-                        <line x1="12" y1="20" x2="12" y2="4" />
-                        <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                </span>
-                <span class="nav-link-label">Reportes</span>
+            <NavLink class="nav-pill" href="reportes" ActiveClass="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+                Reportes
             </NavLink>
 
-            <NavLink class="nav-link-item" href="usuarios" ActiveClass="active">
-                <span class="nav-link-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-                        <path d="M16 3.13a4 4 0 010 7.75" />
-                    </svg>
-                </span>
-                <span class="nav-link-label">Usuarios</span>
+            <NavLink class="nav-pill" href="usuarios" ActiveClass="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                    <path d="M16 3.13a4 4 0 010 7.75" />
+                </svg>
+                Usuarios
             </NavLink>
         }
-
     </div>
 
-    <!-- Footer -->
-    <div class="nav-footer">
-        <div class="nav-user">
-            <div class="nav-user-avatar">
+    <!-- Right: user + logout -->
+    <div class="topbar-right">
+        <div class="topbar-user">
+            <div class="topbar-avatar">
                 @(AuthState.Nombre.Length > 0 ? AuthState.Nombre[..1] : "?")
             </div>
-            <div class="nav-user-info">
-                <div class="nav-user-name">@AuthState.Nombre</div>
-                <div class="nav-user-role">@(AuthState.EsAdmin ? "Administrador" : "Vendedor")</div>
+            <div>
+                <div class="topbar-user-name">@AuthState.Nombre</div>
+                <div class="topbar-user-role">@(AuthState.EsAdmin ? "Administrador" : "Vendedor")</div>
             </div>
         </div>
 
-        <button class="nav-logout" @onclick="CerrarSesion">
+        <button class="topbar-logout" @onclick="CerrarSesion">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            <span class="nav-link-label">Cerrar sesión</span>
+            Salir
         </button>
     </div>
 
-</div>
+</nav>
 
 @code {
-    public bool collapsed = false;
-    [Parameter] public EventCallback OnToggle { get; set; }
-
     protected override void OnInitialized()
     {
         AuthState.OnChange += async () => await InvokeAsync(StateHasChanged);
-    }
-
-    async Task ToggleSidebar()
-    {
-        collapsed = !collapsed;
-        await OnToggle.InvokeAsync();
     }
 
     void CerrarSesion()

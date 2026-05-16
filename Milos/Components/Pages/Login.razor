@@ -113,11 +113,13 @@
         gap: 10px;
         background: rgba(255,255,255,0.12);
         border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 999px;
-        padding: 8px 18px 8px 8px;
+        border-radius: 16px; 
+        padding: 5px 11px;
         margin-bottom: 40px;
         backdrop-filter: blur(8px);
-    }
+        margin-left: 220px;
+    }   
+}
 
     .brand-badge-dot {
         width: 28px;
@@ -523,10 +525,9 @@
 
         <div class="left-content">
             <div class="brand-badge">
-                <div class="brand-badge-dot">
-                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
-                </div>
-                <span>Milo's SVI — Sistema de Gestión</span>
+                <img src="/ChatGPT Image 13 may 2026, 14_40_21.png"
+                     alt="Milo's SVI"
+                     style="height: 290px; width: auto; object-fit: contain; border-radius: 10px;" />
             </div>
 
             <h1 class="left-heading">
@@ -547,7 +548,9 @@
                     <div class="feature-icon">
                         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
                     </div>
-                    <span class="feature-text">No se que poner aca</span>
+                    <span class="feature-text">
+                        @horaActual.ToString("dddd, dd MMM yyyy · hh:mm:ss tt")
+                    </span>
                 </div>
               
             </div>
@@ -622,23 +625,37 @@
         <p class="form-footer">© @DateTime.Now.Year Milo's SVI · Todos los derechos reservados</p>
     </div>
 </div>
-
+@implements IDisposable
 @code {
     string correo = "";
     string password = "";
     string? error;
     bool isLoading = false;
 
+    DateTime horaActual = DateTime.Now;
+    System.Timers.Timer? reloj;
+
     protected override void OnInitialized()
     {
         if (AuthState.IsAuthenticated)
             Nav.NavigateTo("/", replace: true);
+
+        reloj = new System.Timers.Timer(1000);
+        reloj.Elapsed += async (_, _) =>
+        {
+            horaActual = DateTime.Now;
+            await InvokeAsync(StateHasChanged);
+        };
+        reloj.Start();
+    }
+
+    public void Dispose()
+    {
+        reloj?.Dispose();
     }
 
     async Task IniciarSesion()
     {
-        Console.WriteLine("CLICK");
-
         error = null;
         isLoading = true;
 
@@ -662,7 +679,6 @@
             }
 
             AuthState.Login(user);
-
             Nav.NavigateTo("/", forceLoad: true);
         }
         catch (Exception ex)

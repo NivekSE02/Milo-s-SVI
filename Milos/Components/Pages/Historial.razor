@@ -6,65 +6,1195 @@
 
 <PageTitle>Historial de ventas — Milo's SVI</PageTitle>
 
-<!-- Modal detalle venta -->
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Syne:wght@@700;800&display=swap');
+
+    .hist-root * {
+        box-sizing: border-box;
+    }
+
+    .hist-root {
+        font-family: 'DM Sans', sans-serif;
+        background: #f0f4ff;
+        min-height: 100vh;
+        padding: 32px 36px 60px;
+        color: #0d1b4b;
+    }
+
+    /* ── Animations ── */
+    @@keyframes fadeDown {
+        from {
+            opacity: 0;
+            transform: translateY(-12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    @@keyframes backdropIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes rowIn {
+        from {
+            opacity: 0;
+            transform: translateX(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* ── Page header ── */
+    .hist-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        gap: 16px;
+        flex-wrap: wrap;
+        animation: fadeDown 0.5s ease both;
+    }
+
+        .hist-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+            color: #0d1b4b;
+        }
+
+        .hist-header p {
+            font-size: 13px;
+            color: #7c8db5;
+            margin: 0;
+        }
+
+    /* ── Stat pills ── */
+    .stat-pills {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        animation: fadeUp 0.5s 0.08s ease both;
+    }
+
+    .stat-pill {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+        min-width: 155px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .stat-pill-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .stat-pill-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .stat-pill-info span {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: #94a3b8;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .stat-pill-info strong {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0d1b4b;
+        letter-spacing: -0.02em;
+    }
+
+    /* ── Toolbar ── */
+    .hist-toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+        animation: fadeUp 0.5s 0.14s ease both;
+    }
+
+    .search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+    }
+
+        .search-wrap svg {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            stroke: #94a3b8;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+    .hist-input {
+        width: 100%;
+        padding: 10px 14px 10px 38px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-size: 13.5px;
+        font-family: 'DM Sans', sans-serif;
+        background: white;
+        color: #0d1b4b;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .hist-input::placeholder {
+            color: #b0bcd4;
+        }
+
+        .hist-input:focus {
+            border-color: #1a4bbd;
+            box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
+        }
+
+    .hist-select {
+        padding: 10px 34px 10px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-size: 13.5px;
+        font-family: 'DM Sans', sans-serif;
+        background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+        appearance: none;
+        color: #374151;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .hist-select:focus {
+            border-color: #1a4bbd;
+            box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
+        }
+
+    .hist-date {
+        padding: 10px 13px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-size: 13.5px;
+        font-family: 'DM Sans', sans-serif;
+        background: white;
+        color: #374151;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+        .hist-date:focus {
+            border-color: #1a4bbd;
+            box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
+        }
+
+    .btn-clear {
+        padding: 10px 16px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        background: white;
+        font-size: 13px;
+        font-family: 'DM Sans', sans-serif;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+        white-space: nowrap;
+    }
+
+        .btn-clear:hover {
+            background: #f8faff;
+            border-color: #c7d7f8;
+            color: #1a4bbd;
+        }
+
+        .btn-clear svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    /* ── Table card ── */
+    .table-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        animation: fadeUp 0.5s 0.18s ease both;
+    }
+
+    .hist-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+        .hist-table thead tr {
+            background: #f8faff;
+            border-bottom: 1.5px solid #e8edf7;
+        }
+
+        .hist-table thead th {
+            padding: 13px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+            .hist-table thead th.center {
+                text-align: center;
+            }
+
+            .hist-table thead th.right {
+                text-align: right;
+            }
+
+        .hist-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.15s;
+            animation: rowIn 0.35s ease both;
+        }
+
+            .hist-table tbody tr:hover {
+                background: #f8faff;
+            }
+
+            .hist-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .hist-table td {
+            padding: 13px 16px;
+            vertical-align: middle;
+            color: #374151;
+        }
+
+            .hist-table td.center {
+                text-align: center;
+            }
+
+            .hist-table td.right {
+                text-align: right;
+            }
+
+    .sale-id {
+        font-weight: 700;
+        color: #1a4bbd;
+        font-size: 13px;
+        letter-spacing: -0.01em;
+    }
+
+    .sale-date-main {
+        font-size: 13px;
+        font-weight: 500;
+        color: #0d1b4b;
+    }
+
+    .sale-date-time {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+
+    .sale-vendor {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .metodo-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .sale-total {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0d1b4b;
+        letter-spacing: -0.01em;
+    }
+
+    .status-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #15803d;
+        letter-spacing: 0.02em;
+    }
+
+    /* Row action buttons */
+    .row-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+
+    .btn-row {
+        padding: 6px 12px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+        white-space: nowrap;
+    }
+
+        .btn-row svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .btn-row-ghost {
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        color: #374151;
+    }
+
+        .btn-row-ghost:hover {
+            background: #f8faff;
+            border-color: #c7d7f8;
+            transform: translateY(-1px);
+        }
+
+    .btn-row-invoice {
+        background: #eff6ff;
+        border: 1.5px solid #bfdbfe;
+        color: #1d4ed8;
+    }
+
+        .btn-row-invoice:hover {
+            background: #dbeafe;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(29,78,216,0.12);
+        }
+
+    /* ── Tfoot ── */
+    .hist-table tfoot tr {
+        background: #f8faff;
+        border-top: 2px solid #e8edf7;
+    }
+
+    .hist-table tfoot td {
+        padding: 13px 16px;
+        font-size: 13px;
+        color: #7c8db5;
+    }
+
+    .tfoot-total {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0d1b4b;
+        text-align: right;
+    }
+
+    /* ── Empty / Loading ── */
+    .hist-empty {
+        text-align: center;
+        padding: 64px 20px;
+        color: #94a3b8;
+    }
+
+        .hist-empty svg {
+            width: 48px;
+            height: 48px;
+            stroke: #c7d7f8;
+            fill: none;
+            stroke-width: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .hist-empty strong {
+            display: block;
+            font-size: 15px;
+            color: #7c8db5;
+            margin-bottom: 4px;
+        }
+
+        .hist-empty p {
+            font-size: 13px;
+            margin: 0;
+        }
+
+    /* ── Modals (shared) ── */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10,20,60,0.45);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(3px);
+        animation: backdropIn 0.2s ease both;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 540px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+        animation: modalIn 0.3s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    .modal-top-bar {
+        height: 3px;
+        background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px 0;
+    }
+
+        .modal-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0;
+            color: #0d1b4b;
+            letter-spacing: -0.01em;
+        }
+
+    .modal-close {
+        width: 30px;
+        height: 30px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        color: #64748b;
+        transition: background 0.15s;
+        line-height: 1;
+    }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+        }
+
+    .modal-body {
+        padding: 20px 24px 24px;
+    }
+
+    /* Info grid inside modal */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-cell {
+        background: #f8faff;
+        border: 1px solid #e8edf7;
+        border-radius: 10px;
+        padding: 12px 14px;
+    }
+
+    .info-cell-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+    }
+
+    .info-cell-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    /* Products table inside modal */
+    .section-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 10px;
+    }
+
+    .prod-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+        .prod-table thead tr {
+            border-bottom: 1.5px solid #e8edf7;
+        }
+
+        .prod-table thead th {
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+            .prod-table thead th:first-child {
+                text-align: left;
+            }
+
+            .prod-table thead th:nth-child(2) {
+                text-align: center;
+            }
+
+            .prod-table thead th:last-child {
+                text-align: right;
+            }
+
+        .prod-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+            .prod-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .prod-table td {
+            padding: 10px 0;
+            vertical-align: middle;
+        }
+
+            .prod-table td:nth-child(2) {
+                text-align: center;
+                color: #64748b;
+            }
+
+            .prod-table td:last-child {
+                text-align: right;
+                font-weight: 600;
+                color: #0d1b4b;
+            }
+
+    .prod-name {
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .prod-size {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+
+    /* Total row */
+    .total-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f0f4ff;
+        border: 1.5px solid #c7d7f8;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 4px;
+    }
+
+    .total-row-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .total-row-amount {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1a4bbd;
+        letter-spacing: -0.02em;
+    }
+
+    /* Modal footer */
+    .modal-footer {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        padding-top: 18px;
+        border-top: 1px solid #f1f5f9;
+        margin-top: 16px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 18px;
+        border-radius: 9px;
+        font-size: 13.5px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        white-space: nowrap;
+    }
+
+        .btn svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1.5px solid #e2e8f0;
+    }
+
+        .btn-outline:hover {
+            background: #f8faff;
+            border-color: #c7d7f8;
+            transform: translateY(-1px);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0a1f6e 0%, #1a4bbd 60%, #2f7bff 100%);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(26,75,189,0.25);
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(26,75,189,0.35);
+        }
+
+    /* ── Factura print modal ── */
+    .factura-modal-box {
+        background: white;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 92vh;
+        overflow-y: auto;
+        box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+        animation: modalIn 0.3s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    .factura-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 22px;
+        border-bottom: 1.5px solid #e8edf7;
+        background: #f8faff;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .factura-num {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #1a4bbd;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .factura-num svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: #1a4bbd;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    /* Factura content */
+    .factura-body {
+        padding: 28px;
+    }
+
+    .factura-brand-line {
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa);
+        border-radius: 2px;
+        margin-bottom: 20px;
+    }
+
+    .factura-heading {
+        text-align: center;
+        margin-bottom: 22px;
+    }
+
+        .factura-heading h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a4bbd;
+            margin: 0 0 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .factura-heading p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 2px 0 0;
+        }
+
+    .factura-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e8edf7;
+    }
+
+    .factura-meta-left .fac-label {
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 2px;
+    }
+
+    .factura-meta-left .fac-num {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0d1b4b;
+        letter-spacing: -0.02em;
+    }
+
+    .factura-meta-right {
+        text-align: right;
+    }
+
+        .factura-meta-right .fac-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 2px;
+        }
+
+        .factura-meta-right .fac-date {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0d1b4b;
+        }
+
+        .factura-meta-right .fac-time {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+    .factura-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .fac-info-cell {
+        background: #f8faff;
+        border: 1px solid #e8edf7;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+
+        .fac-info-cell .fac-label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 2px;
+        }
+
+        .fac-info-cell .fac-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0d1b4b;
+        }
+
+    .factura-detail-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 8px;
+    }
+
+    .factura-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+        .factura-table thead tr {
+            border-bottom: 2px solid #e8edf7;
+        }
+
+        .factura-table thead th {
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+            .factura-table thead th:first-child {
+                text-align: left;
+            }
+
+            .factura-table thead th:nth-child(2) {
+                text-align: center;
+            }
+
+            .factura-table thead th:last-child {
+                text-align: right;
+            }
+
+        .factura-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+            .factura-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .factura-table td {
+            padding: 9px 0;
+            vertical-align: middle;
+        }
+
+            .factura-table td:nth-child(2) {
+                text-align: center;
+                color: #64748b;
+            }
+
+            .factura-table td:last-child {
+                text-align: right;
+                font-weight: 600;
+                color: #0d1b4b;
+            }
+
+    .factura-total-row {
+        background: #eff6ff;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 14px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+        .factura-total-row span:first-child {
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .factura-total-row span:last-child {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a4bbd;
+            letter-spacing: -0.02em;
+        }
+
+    .factura-footer {
+        text-align: center;
+        padding-top: 16px;
+        border-top: 1px dashed #e2e8f0;
+    }
+
+        .factura-footer p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 0 0 4px;
+        }
+
+        .factura-footer small {
+            font-size: 10px;
+            color: #c7d7f8;
+        }
+
+    @@media (max-width: 640px) {
+        .hist-root {
+            padding: 20px 16px 40px;
+        }
+
+        .hist-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .factura-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .factura-meta {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<!-- ══════════════════════════════════════════════
+     MODAL — DETALLE DE VENTA
+══════════════════════════════════════════════ -->
+@if (ventaDetalle != null)
+{
+    <div class="modal-backdrop" @onclick="() => ventaDetalle = null">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-top-bar"></div>
+
+            <div class="modal-header">
+                <h2>Venta <span style="color:#1a4bbd;">#@ventaDetalle.IdVenta</span></h2>
+                <button class="modal-close" @onclick="() => ventaDetalle = null">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-cell">
+                        <div class="info-cell-label">Fecha</div>
+                        <div class="info-cell-value">@ventaDetalle.FechaPedido?.ToString("dd/MM/yyyy")</div>
+                        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">@ventaDetalle.FechaPedido?.ToString("HH:mm") hrs</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="info-cell-label">Estado</div>
+                        <div class="info-cell-value" style="color:#16a34a;">@ventaDetalle.Estado</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="info-cell-label">Vendedor</div>
+                        <div class="info-cell-value">
+                            @(ventaDetalle.Usuario != null ? $"{ventaDetalle.Usuario.Nombre} {ventaDetalle.Usuario.Apellido}" : "—")
+                        </div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="info-cell-label">Método de pago</div>
+                        <div class="info-cell-value">@(ventaDetalle.Pago?.Metodo ?? "—")</div>
+                    </div>
+                </div>
+
+                <p class="section-label">Productos</p>
+                <table class="prod-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in ventaDetalle.Detalles)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="prod-name">@d.Producto?.Nombre</div>
+                                    @if (d.Producto?.Talla != null)
+                                    {
+                                        <div class="prod-size">Talla @d.Producto.Talla</div>
+                                    }
+                                </td>
+                                <td>@d.Cantidad</td>
+                                <td>$@d.Subtotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="total-row">
+                    <span class="total-row-label">Total de la venta</span>
+                    <span class="total-row-amount">$@ventaDetalle.Total.ToString("N2")</span>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline" @onclick="() => ventaDetalle = null">Cerrar</button>
+                    <button class="btn btn-primary" @onclick="() => { VerFactura(ventaDetalle!); ventaDetalle = null; }">
+                        <svg viewBox="0 0 24 24" stroke="white"><path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                        Ver factura
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ══════════════════════════════════════════════
+     MODAL — FACTURA / IMPRESIÓN
+══════════════════════════════════════════════ -->
 @if (ventaFactura != null)
 {
-    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem;">
-        <div style="background:white;border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.3);">
+    <div class="modal-backdrop" @onclick="() => { ventaFactura = null; facturaHistorial = null; }">
+        <div class="factura-modal-box" @onclick:stopPropagation>
 
-            <div class="no-print" style="display:flex;gap:8px;padding:1rem 1.5rem;border-bottom:1px solid #f0f0f0;justify-content:space-between;align-items:center;">
-                <span style="font-size:14px;font-weight:500;color:#333;">
-                    📄 @(facturaHistorial?.NumeroFactura ?? "Sin número")
-                </span>
+            <!-- Toolbar del modal -->
+            <div class="factura-toolbar no-print">
+                <div class="factura-num">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                    @(facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura.IdVenta}")
+                </div>
                 <div style="display:flex;gap:8px;">
-                    <button @onclick="ImprimirFacturaHistorial"
-                            style="padding:8px 16px;border:none;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:13px;cursor:pointer;font-weight:500;">
-                        🖨️ Imprimir / PDF
-                    </button>
-                    <button @onclick="() => { ventaFactura = null; facturaHistorial = null; }"
-                            style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:white;font-size:13px;cursor:pointer;">
-                        Cerrar
+                    <button class="btn btn-outline" @onclick="() => { ventaFactura = null; facturaHistorial = null; }">Cerrar</button>
+                    <button class="btn btn-primary" @onclick="ImprimirFacturaHistorial">
+                        <svg viewBox="0 0 24 24" stroke="white"><path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                        Imprimir / PDF
                     </button>
                 </div>
             </div>
 
-            <div id="factura-historial-print" style="padding:2rem;">
+            <!-- Contenido imprimible -->
+            <div id="factura-historial-print" class="factura-body">
+                <div class="factura-brand-line"></div>
 
-                <!-- Header -->
-                <div style="text-align:center;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:2px solid #667eea;">
-                    <h1 style="font-size:26px;font-weight:700;color:#667eea;margin:0 0 4px;">Milo's SVI</h1>
-                    <p style="font-size:12px;color:#888;margin:0;">Sistema de Ventas e Inventario</p>
-                    <p style="font-size:12px;color:#888;margin:2px 0 0;">Santa Ana, El Salvador</p>
+                <div class="factura-heading">
+                    <h1>Milo's SVI</h1>
+                    <p>Sistema de Ventas e Inventario</p>
+                    <p>Santa Ana, El Salvador</p>
                 </div>
 
-                <!-- Número y fecha -->
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;">
-                    <div>
-                        <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Número de factura</div>
-                        <div style="font-size:22px;font-weight:700;color:#333;">
-                            @(facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura.IdVenta}")
-                        </div>
+                <div class="factura-meta">
+                    <div class="factura-meta-left">
+                        <div class="fac-label">Número de factura</div>
+                        <div class="fac-num">@(facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura.IdVenta}")</div>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Fecha y hora</div>
-                        <div style="font-size:13px;font-weight:500;color:#333;">@ventaFactura.FechaPedido?.ToString("dd/MM/yyyy")</div>
-                        <div style="font-size:12px;color:#888;">@ventaFactura.FechaPedido?.ToString("HH:mm") hrs</div>
+                    <div class="factura-meta-right">
+                        <div class="fac-label">Fecha y hora</div>
+                        <div class="fac-date">@ventaFactura.FechaPedido?.ToString("dd/MM/yyyy")</div>
+                        <div class="fac-time">@ventaFactura.FechaPedido?.ToString("HH:mm") hrs</div>
                     </div>
                 </div>
 
-                <!-- Info vendedor y pago -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;">
-                    <div style="background:#f9f9f9;border-radius:8px;padding:10px 14px;">
-                        <div style="font-size:11px;color:#aaa;margin-bottom:3px;">Atendido por</div>
-                        <div style="font-size:13px;font-weight:500;">
+                <div class="factura-info-grid">
+                    <div class="fac-info-cell">
+                        <div class="fac-label">Atendido por</div>
+                        <div class="fac-value">
                             @(ventaFactura.Usuario != null
                                                     ? $"{ventaFactura.Usuario.Nombre} {ventaFactura.Usuario.Apellido}"
                                                     : "—")
                                                       </div>
                                                   </div>
-                                                  <div style="background:#f9f9f9;border-radius:8px;padding:10px 14px;">
-                                                      <div style="font-size:11px;color:#aaa;margin-bottom:3px;">Método de pago</div>
-                                                      <div style="font-size:13px;font-weight:500;">
+                                                  <div class="fac-info-cell">
+                                                      <div class="fac-label">Método de pago</div>
+                                                      <div class="fac-value">
                             @(ventaFactura.Pago?.Metodo == "Efectivo" ? "💵" :
                                                     ventaFactura.Pago?.Metodo == "Tarjeta" ? "💳" : "🏦")
                         @ventaFactura.Pago?.Metodo
@@ -72,215 +1202,199 @@
                 </div>
             </div>
 
-                <!-- Detalle de productos -->
-                <div style="margin-bottom:1.5rem;">
-                    <div style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Detalle de compra</div>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                        <thead>
-                            <tr style="border-bottom:2px solid #e5e5e5;">
-                                <th style="text-align:left;padding:8px 0;color:#888;font-weight:500;">Producto</th>
-                                <th style="text-align:center;padding:8px 0;color:#888;font-weight:500;width:50px;">Cant.</th>
-                                <th style="text-align:right;padding:8px 0;color:#888;font-weight:500;width:80px;">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var d in ventaFactura.Detalles)
-                            {
-                                <tr style="border-bottom:1px solid #f5f5f5;">
-                                    <td style="padding:9px 0;">
-                                        <div style="font-weight:500;color:#333;">@d.Producto?.Nombre</div>
-                                        @if (d.Producto?.Talla != null)
-                                        {
-                                            <div style="font-size:11px;color:#aaa;">Talla: @d.Producto.Talla</div>
-                                        }
-                                    </td>
-                                    <td style="padding:9px 0;text-align:center;color:#555;">@d.Cantidad</td>
-                                    <td style="padding:9px 0;text-align:right;font-weight:500;color:#333;">$@d.Subtotal.ToString("N2")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Total -->
-                <div style="border-top:2px solid #e5e5e5;padding-top:1rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:12px 16px;">
-                        <span style="font-size:14px;font-weight:600;color:#333;">TOTAL PAGADO</span>
-                        <span style="font-size:20px;font-weight:700;color:#667eea;">$@ventaFactura.Total.ToString("N2")</span>
-                    </div>
-                </div>
-
-                <!-- Pie -->
-                <div style="text-align:center;margin-top:2rem;padding-top:1rem;border-top:1px dashed #e0e0e0;">
-                    <p style="font-size:12px;color:#888;margin:0 0 4px;">¡Gracias por su compra en Milo's SVI!</p>
-                    <p style="font-size:10px;color:#ccc;margin:0;">
-                        @(facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura.IdVenta}") · @ventaFactura.FechaPedido?.ToString("dd/MM/yyyy HH:mm")
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-@if (ventaDetalle != null)
-{
-    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:flex;align-items:center;justify-content:center;" @onclick="() => ventaDetalle = null">
-        <div style="background:white;border-radius:12px;padding:2rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);" @onclick:stopPropagation>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
-                <h2 style="font-size:16px;font-weight:500;margin:0;">Venta #@ventaDetalle.IdVenta</h2>
-                <button @onclick="() => ventaDetalle = null" style="border:none;background:none;font-size:20px;cursor:pointer;color:#888;">×</button>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;">
-                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
-                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Fecha</div>
-                    <div style="font-size:13px;font-weight:500;">@ventaDetalle.FechaPedido?.ToString("dd/MM/yyyy HH:mm")</div>
-                </div>
-                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
-                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Estado</div>
-                    <div style="font-size:13px;font-weight:500;color:#16a34a;">@ventaDetalle.Estado</div>
-                </div>
-                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
-                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Vendedor</div>
-                    <div style="font-size:13px;font-weight:500;">@(ventaDetalle.Usuario != null ? $"{ventaDetalle.Usuario.Nombre} {ventaDetalle.Usuario.Apellido}" : "—")</div>
-                </div>
-                <div style="background:#f9f9f9;border-radius:8px;padding:12px;">
-                    <div style="font-size:11px;color:#888;margin-bottom:4px;">Método de pago</div>
-                    <div style="font-size:13px;font-weight:500;">@(ventaDetalle.Pago?.Metodo ?? "—")</div>
-                </div>
-            </div>
-
-            <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Productos</div>
-            <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:1.5rem;">
-                <thead>
-                    <tr style="border-bottom:1px solid #f0f0f0;">
-                        <th style="text-align:left;padding:8px 0;color:#888;font-weight:500;">Producto</th>
-                        <th style="text-align:center;padding:8px 0;color:#888;font-weight:500;">Cant.</th>
-                        <th style="text-align:right;padding:8px 0;color:#888;font-weight:500;">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var d in ventaDetalle.Detalles)
-                    {
-                        <tr style="border-bottom:1px solid #f9f9f9;">
-                            <td style="padding:10px 0;">
-                                <div style="font-weight:500;">@d.Producto?.Nombre</div>
-                                @if (d.Producto?.Talla != null)
-                                {
-                                    <div style="font-size:11px;color:#888;">Talla @d.Producto.Talla</div>
-                                }
-                            </td>
-                            <td style="padding:10px 0;text-align:center;">@d.Cantidad</td>
-                            <td style="padding:10px 0;text-align:right;font-weight:500;">$@d.Subtotal.ToString("N2")</td>
+                <p class="factura-detail-label">Detalle de compra</p>
+                <table class="factura-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Subtotal</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    @foreach (var d in ventaFactura.Detalles)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="prod-name">@d.Producto?.Nombre</div>
+                                    @if (d.Producto?.Talla != null)
+                                    {
+                                        <div class="prod-size">Talla: @d.Producto.Talla</div>
+                                    }
+                                </td>
+                                <td>@d.Cantidad</td>
+                                <td>$@d.Subtotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:2px solid #f0f0f0;">
-                <span style="font-size:15px;font-weight:600;">Total</span>
-                <span style="font-size:18px;font-weight:700;color:#667eea;">$@ventaDetalle.Total.ToString("N2")</span>
+                <div class="factura-total-row">
+                    <span>Total pagado</span>
+                    <span>$@ventaFactura.Total.ToString("N2")</span>
+                </div>
+
+                <div class="factura-footer">
+                    <p>¡Gracias por su compra en Milo's SVI!</p>
+                    <small>@(facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura.IdVenta}") · @ventaFactura.FechaPedido?.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
             </div>
         </div>
     </div>
 }
 
-<div style="padding:1.5rem 0;">
+<!-- ══════════════════════════════════════════════
+     CONTENIDO PRINCIPAL
+══════════════════════════════════════════════ -->
+<div class="hist-root">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+    <div class="hist-header">
         <div>
-            <h1 style="font-size:18px;font-weight:500;margin:0;">Historial de ventas</h1>
-            <p style="font-size:13px;color:#888;margin:2px 0 0;">@totalVentas ventas registradas</p>
+            <h1>Historial de ventas</h1>
+            <p>@totalVentas ventas registradas en el sistema</p>
         </div>
-        <!-- Resumen rápido -->
-        <div style="display:flex;gap:12px;">
-            <div style="background:#f0fdf4;border-radius:8px;padding:10px 16px;text-align:center;">
-                <div style="font-size:11px;color:#16a34a;margin-bottom:2px;">Total hoy</div>
-                <div style="font-size:16px;font-weight:600;color:#16a34a;">$@totalHoy.ToString("N2")</div>
+    </div>
+
+    <!-- Stat pills -->
+    <div class="stat-pills">
+        <div class="stat-pill">
+            <div class="stat-pill-icon" style="background:#eff6ff;">
+                <svg viewBox="0 0 24 24" stroke="#1d4ed8"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
             </div>
-            <div style="background:#ede9fe;border-radius:8px;padding:10px 16px;text-align:center;">
-                <div style="font-size:11px;color:#5b21b6;margin-bottom:2px;">Total mes</div>
-                <div style="font-size:16px;font-weight:600;color:#5b21b6;">$@totalMes.ToString("N2")</div>
+            <div class="stat-pill-info">
+                <span>Total ventas</span>
+                <strong>@totalVentas</strong>
+            </div>
+        </div>
+
+        <div class="stat-pill">
+            <div class="stat-pill-icon" style="background:#f0fdf4;">
+                <svg viewBox="0 0 24 24" stroke="#16a34a"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" /><path d="M12 6v6l4 2" /></svg>
+            </div>
+            <div class="stat-pill-info">
+                <span>Total hoy</span>
+                <strong style="color:#16a34a;">$@totalHoy.ToString("N2")</strong>
+            </div>
+        </div>
+
+        <div class="stat-pill">
+            <div class="stat-pill-icon" style="background:#eff6ff;">
+                <svg viewBox="0 0 24 24" stroke="#1d4ed8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+            </div>
+            <div class="stat-pill-info">
+                <span>Total mes</span>
+                <strong>$@totalMes.ToString("N2")</strong>
+            </div>
+        </div>
+
+        <div class="stat-pill">
+            <div class="stat-pill-icon" style="background:#fefce8;">
+                <svg viewBox="0 0 24 24" stroke="#ca8a04"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+            </div>
+            <div class="stat-pill-info">
+                <span>Promedio venta</span>
+                <strong>$@(totalVentas > 0 ? (ventas.Sum(v => v.Total) / totalVentas).ToString("N2") : "0.00")</strong>
             </div>
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap;">
-        <input @bind="busqueda" @bind:event="oninput" placeholder="Buscar por vendedor o ID..."
-               style="flex:1;min-width:180px;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
-        <select @bind="filtroMetodo" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;">
+    <!-- Toolbar / Filtros -->
+    <div class="hist-toolbar">
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <input class="hist-input" @bind="busqueda" @bind:event="oninput" placeholder="Buscar por vendedor o ID..." />
+        </div>
+        <select class="hist-select" @bind="filtroMetodo">
             <option value="">Todos los métodos</option>
             <option value="Efectivo">💵 Efectivo</option>
             <option value="Tarjeta">💳 Tarjeta</option>
             <option value="Transferencia">🏦 Transferencia</option>
         </select>
-        <input @bind="fechaDesde" type="date" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
-        <input @bind="fechaHasta" type="date" style="padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;" />
-        <button @onclick="LimpiarFiltros" style="padding:10px 16px;border:1px solid #e0e0e0;border-radius:8px;background:white;font-size:13px;cursor:pointer;color:#888;">
+        <input class="hist-date" @bind="fechaDesde" type="date" title="Desde" />
+        <input class="hist-date" @bind="fechaHasta" type="date" title="Hasta" />
+        <button class="btn-clear" @onclick="LimpiarFiltros">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             Limpiar
         </button>
     </div>
 
-    <!-- Tabla -->
+    <!-- Tabla / estados -->
     @if (cargando)
     {
-        <div style="text-align:center;padding:3rem;color:#888;font-size:14px;">Cargando historial...</div>
+        <div class="table-card">
+            <div class="hist-empty">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                <strong>Cargando historial...</strong>
+                <p>Por favor espera un momento</p>
+            </div>
+        </div>
     }
     else if (!VentasFiltradas.Any())
     {
-        <div style="text-align:center;padding:3rem;color:#aaa;font-size:14px;">No se encontraron ventas.</div>
+        <div class="table-card">
+            <div class="hist-empty">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+                <strong>No se encontraron ventas</strong>
+                <p>Intenta con otros filtros o un rango de fechas diferente</p>
+            </div>
+        </div>
     }
     else
     {
-        <div style="background:white;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;">
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <div class="table-card">
+            <table class="hist-table">
                 <thead>
-                    <tr style="background:#f9f9f9;border-bottom:1px solid #e5e5e5;">
-                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;"># Venta</th>
-                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Fecha</th>
-                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Vendedor</th>
-                        <th style="text-align:left;padding:12px 16px;color:#888;font-weight:500;">Método</th>
-                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Productos</th>
-                        <th style="text-align:right;padding:12px 16px;color:#888;font-weight:500;">Total</th>
-                        <th style="text-align:center;padding:12px 16px;color:#888;font-weight:500;">Estado</th>
-                        <th style="padding:12px 16px;"></th>
+                    <tr>
+                        <th># Venta</th>
+                        <th>Fecha</th>
+                        <th>Vendedor</th>
+                        <th>Método</th>
+                        <th class="center">Items</th>
+                        <th class="right">Total</th>
+                        <th class="center">Estado</th>
+                        <th class="right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @{
+                        int rowIdx = 0;
+                    }
                     @foreach (var v in VentasFiltradas)
                     {
                         var vendedor = v.Usuario != null ? $"{v.Usuario.Nombre} {v.Usuario.Apellido}" : "—";
                         var metodoIcon = v.Pago?.Metodo == "Efectivo" ? "💵" : v.Pago?.Metodo == "Tarjeta" ? "💳" : "🏦";
-                        <tr style="border-bottom:1px solid #f5f5f5;cursor:pointer;" @onclick="() => VerDetalle(v)">
-                            <td style="padding:12px 16px;font-weight:500;color:#667eea;">#@v.IdVenta</td>
-                            <td style="padding:12px 16px;color:#555;">
-                                <div>@v.FechaPedido?.ToString("dd/MM/yyyy")</div>
-                                <div style="font-size:11px;color:#aaa;">@v.FechaPedido?.ToString("HH:mm")</div>
-                            </td>
-                            <td style="padding:12px 16px;">@vendedor</td>
-                            <td style="padding:12px 16px;">@metodoIcon @v.Pago?.Metodo</td>
-                            <td style="padding:12px 16px;text-align:center;">@v.Detalles.Count</td>
-                            <td style="padding:12px 16px;text-align:right;font-weight:600;">$@v.Total.ToString("N2")</td>
-                            <td style="padding:12px 16px;text-align:center;">
-                                <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#d1fae5;color:#065f46;">@v.Estado</span>
-                            </td>
-                            <td style="padding:12px 16px;text-align:center;">
-                                <button @onclick:stopPropagation @onclick="() => VerDetalle(v)"
-                                        style="border:1px solid #e0e0e0;border-radius:6px;background:white;padding:6px 12px;font-size:12px;cursor:pointer;">
-                                    Ver
-                                </button>
+                        var delay = (rowIdx * 0.04).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                        rowIdx++;
 
+                        <tr style="animation-delay:@(delay)s;" @onclick="() => VerDetalle(v)">
+                            <td><span class="sale-id">#@v.IdVenta</span></td>
+                            <td>
+                                <div class="sale-date-main">@v.FechaPedido?.ToString("dd/MM/yyyy")</div>
+                                <div class="sale-date-time">@v.FechaPedido?.ToString("HH:mm") hrs</div>
                             </td>
-                            <td style="padding:12px 16px;text-align:center;">
-                                <div style="display:flex;gap:6px;justify-content:center;">
-                                    <button @onclick:stopPropagation @onclick="() => VerDetalle(v)"
-                                            style="border:1px solid #e0e0e0;border-radius:6px;background:white;padding:6px 12px;font-size:12px;cursor:pointer;">
+                            <td><span class="sale-vendor">@vendedor</span></td>
+                            <td>
+                                <span class="metodo-badge">@metodoIcon @v.Pago?.Metodo</span>
+                            </td>
+                            <td class="center">
+                                <span style="font-weight:600;color:#475569;">@v.Detalles.Count</span>
+                            </td>
+                            <td class="right">
+                                <span class="sale-total">$@v.Total.ToString("N2")</span>
+                            </td>
+                            <td class="center">
+                                <span class="status-badge">@v.Estado</span>
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <button class="btn-row btn-row-ghost" @onclick:stopPropagation @onclick="() => VerDetalle(v)">
+                                        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                                         Ver
                                     </button>
-                                    <button @onclick:stopPropagation @onclick="() => VerFactura(v)"
-                                            style="border:1px solid #c4b5fd;border-radius:6px;background:white;padding:6px 12px;font-size:12px;cursor:pointer;color:#5b21b6;">
-                                        🖨️ Factura
+                                    <button class="btn-row btn-row-invoice" @onclick:stopPropagation @onclick="() => VerFactura(v)">
+                                        <svg viewBox="0 0 24 24" stroke="currentColor"><path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                                        Factura
                                     </button>
                                 </div>
                             </td>
@@ -288,9 +1402,11 @@
                     }
                 </tbody>
                 <tfoot>
-                    <tr style="background:#f9f9f9;border-top:2px solid #e5e5e5;">
-                        <td colspan="5" style="padding:12px 16px;font-size:13px;color:#888;">@VentasFiltradas.Count() ventas filtradas</td>
-                        <td style="padding:12px 16px;text-align:right;font-weight:700;font-size:14px;">$@VentasFiltradas.Sum(v => v.Total).ToString("N2")</td>
+                    <tr>
+                        <td colspan="5" style="font-size:12px;">
+                            Mostrando <strong style="color:#0d1b4b;">@VentasFiltradas.Count()</strong> ventas
+                        </td>
+                        <td class="tfoot-total">$@VentasFiltradas.Sum(v => v.Total).ToString("N2")</td>
                         <td colspan="2"></td>
                     </tr>
                 </tfoot>
@@ -300,15 +1416,12 @@
 </div>
 
 @code {
-
-
     Venta? ventaFactura;
     ExportacionFactura? facturaHistorial;
 
     async Task VerFactura(Venta v)
     {
         ventaFactura = v;
-        // Buscar si ya existe factura registrada para esta venta
         facturaHistorial = await Db.Facturas
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.IdVenta == v.IdVenta);
@@ -317,13 +1430,14 @@
     async Task ImprimirFacturaHistorial()
     {
         await JS.InvokeVoidAsync("eval", @"
-        var content = document.getElementById('factura-historial-print').innerHTML;
-        var win = window.open('', '_blank');
-        win.document.write('<html><head><title>Factura</title><style>body{font-family:sans-serif;padding:2rem;}table{width:100%;border-collapse:collapse;}th,td{padding:8px 0;}hr{border:none;border-top:1px solid #eee;}</style></head><body>' + content + '</body></html>');
-        win.document.close();
-        win.print();
-    ");
+            var content = document.getElementById('factura-historial-print').innerHTML;
+            var win = window.open('', '_blank');
+            win.document.write('<html><head><title>Factura</title><style>body{font-family:sans-serif;padding:2rem;}table{width:100%;border-collapse:collapse;}th,td{padding:8px 0;}</style></head><body>' + content + '</body></html>');
+            win.document.close();
+            win.print();
+        ");
     }
+
     bool cargando = true;
     List<Venta> ventas = new();
     Venta? ventaDetalle;
@@ -358,7 +1472,6 @@
         totalVentas = ventas.Count;
         totalHoy = ventas.Where(v => v.FechaPedido >= DateTime.Today).Sum(v => v.Total);
         totalMes = ventas.Where(v => v.FechaPedido >= new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)).Sum(v => v.Total);
-
         cargando = false;
     }
 

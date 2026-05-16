@@ -6,131 +6,891 @@
 
 <PageTitle>Inicio — Milo's SVI</PageTitle>
 
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Syne:wght@@700;800&display=swap');
+
+    .dash-root * {
+        box-sizing: border-box;
+    }
+
+    .dash-root {
+        font-family: 'DM Sans', sans-serif;
+        background: #f0f4ff;
+        min-height: 100vh;
+        padding: 32px 36px 60px;
+        color: #0d1b4b;
+    }
+
+    /* ── Animations ── */
+    @@keyframes fadeDown {
+        from {
+            opacity: 0;
+            transform: translateY(-14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes countUp {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes barGrow {
+        from {
+            width: 0;
+        }
+    }
+
+    @@keyframes pulseGreen {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(22,163,74,0.3);
+        }
+
+        50% {
+            box-shadow: 0 0 0 6px rgba(22,163,74,0);
+        }
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: -400px 0;
+        }
+
+        100% {
+            background-position: 400px 0;
+        }
+    }
+
+    @@keyframes rowSlide {
+        from {
+            opacity: 0;
+            transform: translateX(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@keyframes dotPulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.5);
+            opacity: 0.6;
+        }
+    }
+
+    /* ── Header ── */
+    .dash-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 14px;
+        animation: fadeDown 0.5s ease both;
+    }
+
+        .dash-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+            color: #0d1b4b;
+        }
+
+        .dash-header p {
+            font-size: 13px;
+            color: #7c8db5;
+            margin: 0;
+        }
+
+    .user-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 999px;
+        padding: 7px 14px 7px 7px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1a4bbd, #60a5fa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 0.01em;
+    }
+
+    .user-pill-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .active-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #16a34a;
+        animation: pulseGreen 2s ease infinite;
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .kpi-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: transform 0.2s, box-shadow 0.2s;
+        animation: fadeUp 0.5s ease both;
+    }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26,75,189,0.1);
+        }
+
+        .kpi-card:nth-child(1) {
+            animation-delay: 0.06s;
+        }
+
+        .kpi-card:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .kpi-card:nth-child(3) {
+            animation-delay: 0.18s;
+        }
+
+        .kpi-card:nth-child(4) {
+            animation-delay: 0.24s;
+        }
+
+    .kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .kpi-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .kpi-delta {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+        .kpi-delta svg {
+            width: 11px;
+            height: 11px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .kpi-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .kpi-value {
+        font-family: 'Syne', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        color: #0d1b4b;
+        letter-spacing: -0.03em;
+        animation: countUp 0.6s ease both;
+    }
+
+    .kpi-sub {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    /* ── Two-col layout ── */
+    .dash-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    /* ── Panel card (shared) ── */
+    .panel {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 22px 22px 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        animation: fadeUp 0.5s ease both;
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .panel-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .panel-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    /* ── Recent Sales ── */
+    .sale-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+        animation: rowSlide 0.4s ease both;
+    }
+
+        .sale-row:last-child {
+            border-bottom: none;
+        }
+
+    .sale-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #dbeafe, #eff6ff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1d4ed8;
+        flex-shrink: 0;
+        border: 1.5px solid #bfdbfe;
+    }
+
+    .sale-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sale-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0d1b4b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sale-time {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 1px;
+    }
+
+    .sale-amount {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0d1b4b;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+    }
+
+    /* ── Category chart bars ── */
+    .cat-row {
+        margin-bottom: 14px;
+        animation: fadeIn 0.5s ease both;
+    }
+
+        .cat-row:last-child {
+            margin-bottom: 0;
+        }
+
+    .cat-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .cat-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cat-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .cat-amount {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #0d1b4b;
+    }
+
+    .bar-track {
+        height: 7px;
+        background: #f1f5f9;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        animation: barGrow 1s cubic-bezier(.22,.68,0,1.2) both;
+    }
+
+    /* ── Donut chart (SVG) ── */
+    .donut-wrap {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .donut-svg {
+        flex-shrink: 0;
+    }
+
+    .donut-legend {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: fadeIn 0.5s ease both;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    .legend-name {
+        font-size: 12.5px;
+        color: #374151;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .legend-pct {
+        font-size: 12px;
+        font-weight: 700;
+        color: #0d1b4b;
+    }
+
+    /* ── Critical inventory ── */
+    .crit-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px;
+        animation: rowSlide 0.4s ease both;
+    }
+
+        .crit-row:last-child {
+            border-bottom: none;
+        }
+
+    .crit-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        animation: dotPulse 2s ease infinite;
+    }
+
+    .crit-name {
+        flex: 1;
+        font-weight: 500;
+        color: #0d1b4b;
+    }
+
+    .crit-badge {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+
+    .crit-status {
+        font-size: 12px;
+        color: #94a3b8;
+        width: 62px;
+        text-align: right;
+    }
+
+    /* ── Mini sparkline (decorative) ── */
+    .sparkline {
+        display: block;
+    }
+
+    /* ── Loading skeleton ── */
+    .skeleton {
+        background: linear-gradient(90deg, #e8edf7 25%, #f0f4ff 50%, #e8edf7 75%);
+        background-size: 400px 100%;
+        animation: shimmer 1.4s ease infinite;
+        border-radius: 8px;
+    }
+
+    /* ── Empty states ── */
+    .empty-state {
+        font-size: 13px;
+        color: #94a3b8;
+        padding: 16px 0;
+    }
+
+    .empty-ok {
+        font-size: 13px;
+        color: #16a34a;
+        font-weight: 500;
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .empty-ok svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #16a34a;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    @@media (max-width: 768px) {
+        .dash-root {
+            padding: 20px 16px 40px;
+        }
+
+        .dash-row {
+            grid-template-columns: 1fr;
+        }
+
+        .kpi-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+
 @if (cargando)
 {
-    <div style="display:flex;align-items:center;justify-content:center;height:60vh;color:#888;font-size:14px;">
-        Cargando datos...
+    <div class="dash-root">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e2e8f0;">
+                    <div class="skeleton" style="height:12px;width:60%;margin-bottom:16px;"></div>
+                    <div class="skeleton" style="height:32px;width:80%;margin-bottom:10px;"></div>
+                    <div class="skeleton" style="height:10px;width:40%;"></div>
+                </div>
+            }
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="skeleton" style="height:260px;border-radius:14px;"></div>
+            <div class="skeleton" style="height:260px;border-radius:14px;"></div>
+        </div>
     </div>
 }
 else
 {
-    <div style="padding:1.5rem 0;">
+    <div class="dash-root">
 
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <!-- ── Header ── -->
+        <div class="dash-header">
             <div>
-                <h1 style="font-size:18px;font-weight:500;margin:0;">Panel de ventas</h1>
-                <p style="font-size:13px;color:#888;margin:2px 0 0;">@DateTime.Now.ToString("MMMM yyyy")</p>
+                <h1>Panel de ventas</h1>
+                <p>@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:13px;color:#888;">Hola, @AuthState.Nombre</span>
-                <span style="background:#d1fae5;color:#065f46;font-size:12px;padding:4px 10px;border-radius:6px;">● Activo</span>
+            <div class="user-pill">
+                <div class="user-avatar">
+                    @(AuthState.Nombre?.Length > 0 ? AuthState.Nombre[..1].ToUpper() : "U")
+                </div>
+                <span class="user-pill-name">@AuthState.Nombre</span>
+                <div class="active-dot"></div>
             </div>
         </div>
 
-        <!-- Métricas -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem;">
-            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
-                <div style="font-size:12px;color:#888;margin-bottom:6px;">💰 Ventas hoy</div>
-                <div style="font-size:22px;font-weight:500;">$@ventasHoy.ToString("N2")</div>
-                <div style="font-size:11px;margin-top:4px;color:@(deltaVentas >= 0 ? "#16a34a" : "#dc2626");">
-                    @(deltaVentas >= 0 ? "↑" : "↓") @Math.Abs(deltaVentas).ToString("N2") vs ayer
+        <!-- ── KPI Cards ── -->
+        <div class="kpi-grid">
+
+            <!-- Ventas hoy -->
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon" style="background:#eff6ff;">
+                        <svg viewBox="0 0 24 24" stroke="#1d4ed8"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                    </div>
+                    <span class="kpi-delta" style="background:@(deltaVentas >= 0 ? "#dcfce7" : "#fee2e2");color:@(deltaVentas >= 0 ? "#16a34a" : "#dc2626");">
+                        <svg viewBox="0 0 24 24"><polyline points="@(deltaVentas >= 0 ? "18 15 12 9 6 15" : "6 9 12 15 18 9")" /></svg>
+                        $@Math.Abs(deltaVentas).ToString("N0")
+                    </span>
+                </div>
+                <div>
+                    <div class="kpi-label">Ventas hoy</div>
+                    <div class="kpi-value">$@ventasHoy.ToString("N2")</div>
+                    <div class="kpi-sub">vs $@ventasAyer.ToString("N2") ayer</div>
                 </div>
             </div>
-            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
-                <div style="font-size:12px;color:#888;margin-bottom:6px;">🧾 Órdenes hoy</div>
-                <div style="font-size:22px;font-weight:500;">@ordenesHoy</div>
-                <div style="font-size:11px;margin-top:4px;color:@(deltaOrdenes >= 0 ? "#16a34a" : "#dc2626");">
-                    @(deltaOrdenes >= 0 ? "↑" : "↓") @Math.Abs(deltaOrdenes) vs ayer
+
+            <!-- Órdenes hoy -->
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon" style="background:#f0fdf4;">
+                        <svg viewBox="0 0 24 24" stroke="#16a34a"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+                    </div>
+                    <span class="kpi-delta" style="background:@(deltaOrdenes >= 0 ? "#dcfce7" : "#fee2e2");color:@(deltaOrdenes >= 0 ? "#16a34a" : "#dc2626");">
+                        <svg viewBox="0 0 24 24"><polyline points="@(deltaOrdenes >= 0 ? "18 15 12 9 6 15" : "6 9 12 15 18 9")" /></svg>
+                        @Math.Abs(deltaOrdenes)
+                    </span>
+                </div>
+                <div>
+                    <div class="kpi-label">Órdenes hoy</div>
+                    <div class="kpi-value">@ordenesHoy</div>
+                    <div class="kpi-sub">@ordenesAyer ayer</div>
                 </div>
             </div>
-            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
-                <div style="font-size:12px;color:#888;margin-bottom:6px;">📦 Productos</div>
-                <div style="font-size:22px;font-weight:500;">@totalProductos</div>
-                <div style="font-size:11px;color:#dc2626;margin-top:4px;">↓ @productosSinStock sin stock</div>
+
+            <!-- Productos -->
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon" style="background:#fefce8;">
+                        <svg viewBox="0 0 24 24" stroke="#ca8a04"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+                    </div>
+                    @if (productosSinStock > 0)
+                    {
+                        <span class="kpi-delta" style="background:#fee2e2;color:#dc2626;">
+                            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+                            @productosSinStock sin stock
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="kpi-delta" style="background:#dcfce7;color:#16a34a;">✓ OK</span>
+                    }
+                </div>
+                <div>
+                    <div class="kpi-label">Productos</div>
+                    <div class="kpi-value">@totalProductos</div>
+                    <div class="kpi-sub">en @totalCategorias categorías</div>
+                </div>
             </div>
-            <div style="background:#f5f5f3;border-radius:8px;padding:1rem;">
-                <div style="font-size:12px;color:#888;margin-bottom:6px;">📂 Categorías</div>
-                <div style="font-size:22px;font-weight:500;">@totalCategorias</div>
-                <div style="font-size:11px;color:#888;margin-top:4px;">activas</div>
+
+            <!-- Ticket promedio -->
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <div class="kpi-icon" style="background:#fdf4ff;">
+                        <svg viewBox="0 0 24 24" stroke="#a21caf"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+                    </div>
+                    <span class="kpi-delta" style="background:#fdf4ff;color:#a21caf;">avg</span>
+                </div>
+                <div>
+                    <div class="kpi-label">Ticket promedio</div>
+                    <div class="kpi-value">$@(ordenesHoy > 0 ? (ventasHoy / ordenesHoy).ToString("N2") : "0.00")</div>
+                    <div class="kpi-sub">por orden hoy</div>
+                </div>
             </div>
         </div>
 
-        <!-- Ventas recientes + Stock bajo -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;">
+        <!-- ── Row 1: Ventas recientes + Chart categorías ── -->
+        <div class="dash-row" style="animation: fadeUp 0.5s 0.2s ease both;">
 
             <!-- Ventas recientes -->
-            <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
-                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Ventas recientes</div>
-                @if (ventasRecientes.Count == 0)
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Ventas recientes</span>
+                    <span class="panel-badge" style="background:#eff6ff;color:#1d4ed8;">Últimas 5</span>
+                </div>
+
+                @if (!ventasRecientes.Any())
                 {
-                    <div style="font-size:13px;color:#aaa;padding:1rem 0;">No hay ventas hoy.</div>
+                    <div class="empty-state">No hay ventas registradas hoy.</div>
                 }
-                @foreach (var v in ventasRecientes)
+                else
                 {
-                    var iniciales = v.Usuario != null
-                    ? $"{v.Usuario.Nombre?[..1]}{v.Usuario.Apellido?[..1]}"
-                    : "??";
-                    var nombre = v.Usuario != null
-                    ? $"{v.Usuario.Nombre} {v.Usuario.Apellido}"
-                    : "Desconocido";
-                    var hace = FormatHace(v.FechaPedido ?? DateTime.Now);
-                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0f0;">
-                        <div style="width:32px;height:32px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#1d4ed8;">@iniciales</div>
-                        <div>
-                            <div style="font-size:13px;">@nombre</div>
-                            <div style="font-size:11px;color:#888;">@hace</div>
+                    int saleIdx = 0;
+                    foreach (var v in ventasRecientes)
+                    {
+                        var iniciales = v.Usuario != null
+                        ? $"{v.Usuario.Nombre?[..1]}{v.Usuario.Apellido?[..1]}"
+                        : "??";
+                        var nombre = v.Usuario != null
+                        ? $"{v.Usuario.Nombre} {v.Usuario.Apellido}"
+                        : "Desconocido";
+                        var hace = FormatHace(v.FechaPedido ?? DateTime.Now);
+                        var delay = (saleIdx * 0.07).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                        saleIdx++;
+
+                        <div class="sale-row" style="animation-delay:@(delay)s;">
+                            <div class="sale-avatar">@iniciales</div>
+                            <div class="sale-info">
+                                <div class="sale-name">@nombre</div>
+                                <div class="sale-time">@hace</div>
+                            </div>
+                            <div class="sale-amount">$@v.Total.ToString("N2")</div>
                         </div>
-                        <div style="margin-left:auto;font-size:13px;font-weight:500;">$@v.Total.ToString("N2")</div>
-                    </div>
+                    }
                 }
             </div>
 
-            <!-- Top categorías por ventas -->
-            <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
-                <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Ventas por categoría</div>
-                @if (topCategorias.Count == 0)
+            <!-- Categorías — donut + barras -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Ventas por categoría</span>
+                    <span class="panel-badge" style="background:#fdf4ff;color:#a21caf;">Top @topCategorias.Count</span>
+                </div>
+
+                @if (!topCategorias.Any())
                 {
-                    <div style="font-size:13px;color:#aaa;padding:1rem 0;">Sin datos aún.</div>
+                    <div class="empty-state">Sin datos de ventas aún.</div>
                 }
-                @{
-                    var maxCat = topCategorias.Count > 0 ? topCategorias.Max(c => c.Total) : 1;
-                    string[] colores = { "#378ADD", "#1D9E75", "#EF9F27", "#D4537E", "#888780" };
-                }
-                @for (int i = 0; i < topCategorias.Count; i++)
+                else
                 {
-                    var cat = topCategorias[i];
-                    var pct = maxCat > 0 ? (int)(cat.Total / maxCat * 100) : 0;
-                    var color = colores[i % colores.Length];
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                        <span style="font-size:12px;color:#888;width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@cat.Nombre</span>
-                        <div style="flex:1;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;">
-                            <div style="height:100%;width:@(pct)%;background:@color;border-radius:3px;"></div>
+                    string[] catColors = { "#1a4bbd", "#16a34a", "#d97706", "#dc2626", "#7c3aed" };
+                    var maxCat = topCategorias.Max(c => c.Total);
+                    var sumCat = topCategorias.Sum(c => c.Total);
+
+                    /* SVG Donut */
+                    double cx = 54, cy = 54, r = 40, strokeW = 14;
+                    double circum = 2 * Math.PI * r;
+
+                    <div class="donut-wrap">
+                        <!-- Donut SVG -->
+                        <svg class="donut-svg" width="108" height="108" viewBox="0 0 108 108">
+                            <!-- track -->
+                            <circle cx="@cx" cy="@cy" r="@r"
+                                    fill="none" stroke="#f1f5f9"
+                                    stroke-width="@strokeW" />
+                            @{
+                                double segOffset = circum * 0.25; /* start at top */
+                            }
+                            @for (int ci = topCategorias.Count - 1; ci >= 0; ci--)
+                            {
+                                var cat = topCategorias[ci];
+                                var pctSeg = sumCat > 0 ? (double)cat.Total / (double)sumCat : 0;
+                                var dash = pctSeg * circum;
+                                var gap = circum - dash;
+
+                                /* cumulative offset for this segment */
+                                double prevSum = 0;
+                                for (int pi = 0; pi < ci; pi++)
+                                    prevSum += sumCat > 0 ? (double)topCategorias[pi].Total / (double)sumCat * circum : 0;
+                                var segOff = (circum * 0.25) + prevSum;
+
+                                var col = catColors[ci % catColors.Length];
+                                <circle cx="@cx" cy="@cy" r="@r"
+                                        fill="none"
+                                        stroke="@col"
+                                        stroke-width="@strokeW"
+                                        stroke-linecap="round"
+                                        stroke-dasharray="@dash.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) @gap.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                        stroke-dashoffset="-@segOff.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"
+                                        transform="rotate(-90 @cx @cy)" />
+                            }
+                            <!-- centre label -->
+                            <text x="@cx" y="@(cy - 5)" text-anchor="middle"
+                                  font-family="Syne,sans-serif" font-size="11" font-weight="800" fill="#0d1b4b">
+                                $@sumCat.ToString("N0")
+                            </text>
+                            <text x="@cx" y="@(cy + 10)" text-anchor="middle"
+                                  font-family="DM Sans,sans-serif" font-size="9" fill="#94a3b8">
+                                total
+                            </text>
+                        </svg>
+
+                        <!-- Legend -->
+                        <div class="donut-legend">
+                            @for (int li = 0; li < topCategorias.Count; li++)
+                            {
+                                var cat = topCategorias[li];
+                                var pct = sumCat > 0 ? (int)((double)cat.Total / (double)sumCat * 100) : 0;
+                                var color = catColors[li % catColors.Length];
+                                var ldelay = (li * 0.1).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+
+                                <div class="legend-item" style="animation-delay:@(ldelay)s;">
+                                    <div class="legend-dot" style="background:@color;"></div>
+                                    <span class="legend-name">@cat.Nombre</span>
+                                    <span class="legend-pct">@pct%</span>
+                                </div>
+                            }
                         </div>
-                        <span style="font-size:12px;color:#888;width:50px;text-align:right;">$@cat.Total.ToString("N0")</span>
+                    </div>
+
+                    <!-- Bar chart below -->
+                    <div style="margin-top:20px;border-top:1px solid #f1f5f9;padding-top:16px;">
+                        @for (int bi = 0; bi < topCategorias.Count; bi++)
+                        {
+                            var cat = topCategorias[bi];
+                            var pct = maxCat > 0 ? (int)((double)cat.Total / (double)maxCat * 100) : 0;
+                            var color = catColors[bi % catColors.Length];
+                            var bdelay = (bi * 0.12).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+                            <div class="cat-row" style="animation-delay:@(bdelay)s;">
+                                <div class="cat-meta">
+                                    <span class="cat-name">
+                                        <span class="cat-dot" style="background:@color;"></span>
+                                        @cat.Nombre
+                                    </span>
+                                    <span class="cat-amount">$@cat.Total.ToString("N0")</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width:@(pct)%;background:@color;animation-delay:@(bdelay)s;"></div>
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
             </div>
         </div>
 
-        <!-- Inventario crítico -->
-        <div style="border:0.5px solid #e5e5e5;border-radius:12px;padding:1rem 1.25rem;">
-            <div style="font-size:12px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Inventario crítico</div>
-            @if (inventarioCritico.Count == 0)
+        <!-- ── Row 2: Inventario crítico (full width) ── -->
+        <div class="panel" style="animation: fadeUp 0.5s 0.3s ease both;">
+            <div class="panel-header">
+                <span class="panel-title">Inventario crítico</span>
+                <span class="panel-badge" style="background:@(inventarioCritico.Any() ? "#fff1f2" : "#f0fdf4");color:@(inventarioCritico.Any() ? "#be123c" : "#16a34a");">
+                    @(inventarioCritico.Any() ? $"{inventarioCritico.Count} alertas" : "Todo normal")
+                </span>
+            </div>
+
+            @if (!inventarioCritico.Any())
             {
-                <div style="font-size:13px;color:#16a34a;padding:0.5rem 0;">✓ Todo el inventario está en niveles normales.</div>
+                <div class="empty-ok">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                    Todo el inventario está en niveles normales. ¡Buen trabajo!
+                </div>
             }
-            @foreach (var p in inventarioCritico)
+            else
             {
-                var dotColor = p.Stock == 0 ? "#dc2626" : "#f59e0b";
-                var badgeBg = p.Stock == 0 ? "#fef3c7" : "#dbeafe";
-                var badgeColor = p.Stock == 0 ? "#92400e" : "#1e40af";
-                var estado = p.Stock == 0 ? "Sin stock" : "Bajo";
-                <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #f0f0f0;font-size:13px;">
-                    <span style="width:7px;height:7px;border-radius:50%;background:@dotColor;display:inline-block;"></span>
-                    <span style="flex:1;">@p.Nombre</span>
-                    <span style="font-size:12px;padding:2px 8px;border-radius:6px;background:@badgeBg;color:@badgeColor;">@p.Stock unid.</span>
-                    <span style="font-size:12px;color:#888;width:60px;text-align:right;">@estado</span>
+                int critIdx = 0;
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0 24px;">
+                    @foreach (var p in inventarioCritico)
+                    {
+                        var dotColor = p.Stock == 0 ? "#dc2626" : "#d97706";
+                        var badgeBg = p.Stock == 0 ? "#fef2f2" : "#fffbeb";
+                        var badgeColor = p.Stock == 0 ? "#dc2626" : "#d97706";
+                        var estado = p.Stock == 0 ? "Sin stock" : "Stock bajo";
+                        var cdelay = (critIdx * 0.07).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                        critIdx++;
+
+                        <div class="crit-row" style="animation-delay:@(cdelay)s;">
+                            <div class="crit-dot" style="background:@dotColor;animation-delay:@(critIdx * 0.3)s;"></div>
+                            <span class="crit-name">@p.Nombre</span>
+                            <span class="crit-badge" style="background:@badgeBg;color:@badgeColor;">@p.Stock unid.</span>
+                            <span class="crit-status">@estado</span>
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -162,52 +922,33 @@ else
         var hoy = DateTime.Today;
         var ayer = hoy.AddDays(-1);
 
-        // Ventas hoy / ayer
-        ventasHoy = await Db.Ventas
-    .Where(v => v.FechaPedido != null && v.FechaPedido >= hoy)
-    .SumAsync(v => (decimal?)v.Total) ?? 0;
-
-        ventasAyer = await Db.Ventas
-            .Where(v => v.FechaPedido != null && v.FechaPedido >= ayer && v.FechaPedido < hoy)
-            .SumAsync(v => (decimal?)v.Total) ?? 0;
-
+        ventasHoy = await Db.Ventas.Where(v => v.FechaPedido != null && v.FechaPedido >= hoy).SumAsync(v => (decimal?)v.Total) ?? 0;
+        ventasAyer = await Db.Ventas.Where(v => v.FechaPedido != null && v.FechaPedido >= ayer && v.FechaPedido < hoy).SumAsync(v => (decimal?)v.Total) ?? 0;
         deltaVentas = ventasHoy - ventasAyer;
 
-        // Órdenes hoy / ayer
         ordenesHoy = await Db.Ventas.CountAsync(v => v.FechaPedido != null && v.FechaPedido >= hoy);
         ordenesAyer = await Db.Ventas.CountAsync(v => v.FechaPedido != null && v.FechaPedido >= ayer && v.FechaPedido < hoy);
         deltaOrdenes = ordenesHoy - ordenesAyer;
 
-        // Productos
         totalProductos = await Db.Productos.CountAsync();
         productosSinStock = await Db.Productos.CountAsync(p => p.Stock == 0);
         totalCategorias = await Db.Categorias.CountAsync();
 
-        // Ventas recientes (últimas 5)
         ventasRecientes = await Db.Ventas
             .Include(v => v.Usuario)
             .OrderByDescending(v => v.FechaPedido)
             .Take(5)
             .ToListAsync();
 
-        // Inventario crítico (stock <= 10)
         inventarioCritico = await Db.Productos
             .Where(p => p.Stock <= 10)
             .OrderBy(p => p.Stock)
             .Take(8)
             .ToListAsync();
 
-        // Top categorías por total vendido
-        // Top categorías por total vendido
         topCategorias = await Db.DetallesVenta
-            .Join(Db.Productos,
-                d => d.IdProducto,
-                p => p.IdProducto,
-                (d, p) => new { d.Subtotal, p.IdCategoria })
-            .Join(Db.Categorias,
-                d => d.IdCategoria,
-                c => c.IdCategoria,
-                (d, c) => new { d.Subtotal, c.NombreCategoria })
+            .Join(Db.Productos, d => d.IdProducto, p => p.IdProducto, (d, p) => new { d.Subtotal, p.IdCategoria })
+            .Join(Db.Categorias, d => d.IdCategoria, c => c.IdCategoria, (d, c) => new { d.Subtotal, c.NombreCategoria })
             .GroupBy(x => x.NombreCategoria)
             .Select(g => new { Nombre = g.Key, Total = g.Sum(x => x.Subtotal) })
             .OrderByDescending(x => x.Total)
@@ -221,7 +962,7 @@ else
     string FormatHace(DateTime fecha)
     {
         var diff = DateTime.Now - fecha;
-        if (diff.TotalMinutes < 1) return "ahora";
+        if (diff.TotalMinutes < 1) return "ahora mismo";
         if (diff.TotalMinutes < 60) return $"hace {(int)diff.TotalMinutes} min";
         if (diff.TotalHours < 24) return $"hace {(int)diff.TotalHours} h";
         return fecha.ToString("dd/MM/yyyy");
