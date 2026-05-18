@@ -39,3 +39,13 @@
     <script src="_framework/blazor.web.js"></script>
 </body>
 </html>
+
+<script>
+    window.imprimirFactura = function (html) {
+        var win = window.open('', '_blank', 'width=700,height=900');
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        setTimeout(function () { win.print(); }, 500);
+    };
+</script>

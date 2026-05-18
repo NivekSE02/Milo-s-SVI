@@ -1426,16 +1426,120 @@
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.IdVenta == v.IdVenta);
     }
-
     async Task ImprimirFacturaHistorial()
     {
-        await JS.InvokeVoidAsync("eval", @"
-            var content = document.getElementById('factura-historial-print').innerHTML;
-            var win = window.open('', '_blank');
-            win.document.write('<html><head><title>Factura</title><style>body{font-family:sans-serif;padding:2rem;}table{width:100%;border-collapse:collapse;}th,td{padding:8px 0;}</style></head><body>' + content + '</body></html>');
-            win.document.close();
-            win.print();
-        ");
+        var numFactura = facturaHistorial?.NumeroFactura ?? $"VENTA-{ventaFactura?.IdVenta}";
+        var fecha = ventaFactura?.FechaPedido?.ToString("dd/MM/yyyy") ?? "";
+        var hora = ventaFactura?.FechaPedido?.ToString("HH:mm") ?? "";
+        var fechaCompleta = ventaFactura?.FechaPedido?.ToString("dd/MM/yyyy HH:mm") ?? "";
+        var vendedor = ventaFactura?.Usuario != null
+            ? $"{ventaFactura.Usuario.Nombre} {ventaFactura.Usuario.Apellido}"
+            : "—";
+        var metodo = ventaFactura?.Pago?.Metodo ?? "—";
+        var metodoIcon = metodo == "Efectivo" ? "💵" : metodo == "Tarjeta" ? "💳" : "🏦";
+        var total = ventaFactura?.Total ?? 0;
+
+        var filas = new System.Text.StringBuilder();
+        foreach (var d in ventaFactura?.Detalles ?? new())
+        {
+            filas.Append("<tr>");
+            filas.Append("<td>");
+            filas.Append($"<div class=\"prod-name\">{d.Producto?.Nombre}</div>");
+            if (d.Producto?.Talla != null)
+                filas.Append($"<div class=\"prod-talla\">Talla: {d.Producto.Talla}</div>");
+            filas.Append("</td>");
+            filas.Append($"<td>{d.Cantidad}</td>");
+            filas.Append($"<td>${d.Subtotal:N2}</td>");
+            filas.Append("</tr>");
+        }
+
+        var html = @"<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Factura " + numFactura + @"</title>
+<link href='https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap' rel='stylesheet'>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: DM Sans, sans-serif; color: #0d1b4b; padding: 32px; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.brand-bar { height: 4px; background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa); border-radius: 2px; margin-bottom: 24px; }
+.heading { text-align: center; margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1.5px solid #e8edf7; }
+.heading h1 { font-family: Syne, sans-serif; font-size: 26px; font-weight: 800; color: #1a4bbd; margin: 0 0 4px; letter-spacing: -0.02em; }
+.heading p { font-size: 12px; color: #94a3b8; margin: 2px 0 0; }
+.meta { display: flex; justify-content: space-between; margin-bottom: 18px; }
+.fac-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; }
+.fac-num { font-family: Syne, sans-serif; font-size: 20px; font-weight: 800; color: #0d1b4b; }
+.fac-date { font-size: 13px; font-weight: 600; color: #0d1b4b; }
+.fac-time { font-size: 11px; color: #94a3b8; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.info-cell { background: #f8faff; border: 1px solid #e8edf7; border-radius: 9px; padding: 10px 12px; }
+.info-value { font-size: 13px; font-weight: 600; color: #0d1b4b; }
+.section-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+thead tr { border-bottom: 2px solid #e8edf7; }
+thead th { padding: 8px 0; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+thead th:first-child { text-align: left; }
+thead th:nth-child(2) { text-align: center; }
+thead th:last-child { text-align: right; }
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+td { padding: 9px 0; vertical-align: middle; }
+td:nth-child(2) { text-align: center; color: #64748b; }
+td:last-child { text-align: right; font-weight: 600; color: #0d1b4b; }
+.prod-name { font-weight: 600; color: #0d1b4b; }
+.prod-talla { font-size: 11px; color: #94a3b8; }
+.total-box { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.total-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #1e40af; }
+.total-amount { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: #1a4bbd; }
+.footer { text-align: center; padding-top: 16px; border-top: 1px dashed #e2e8f0; }
+.footer p { font-size: 12px; color: #94a3b8; margin: 0 0 3px; }
+.footer small { font-size: 10px; color: #c7d7f8; }
+</style>
+</head>
+<body>
+  <div class='brand-bar'></div>
+  <div class='heading'>
+    <h1>Milo's SVI</h1>
+    <p>Sistema de Ventas e Inventario</p>
+    <p>Santa Ana, El Salvador</p>
+  </div>
+  <div class='meta'>
+    <div>
+      <div class='fac-label'>Numero de factura</div>
+      <div class='fac-num'>" + numFactura + @"</div>
+    </div>
+    <div style='text-align:right;'>
+      <div class='fac-label'>Fecha y hora</div>
+      <div class='fac-date'>" + fecha + @"</div>
+      <div class='fac-time'>" + hora + @" hrs</div>
+    </div>
+  </div>
+  <div class='info-grid'>
+    <div class='info-cell'>
+      <div class='fac-label'>Atendido por</div>
+      <div class='info-value'>" + vendedor + @"</div>
+    </div>
+    <div class='info-cell'>
+      <div class='fac-label'>Metodo de pago</div>
+      <div class='info-value'>" + metodoIcon + " " + metodo + @"</div>
+    </div>
+  </div>
+  <p class='section-label'>Detalle de compra</p>
+  <table>
+    <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+    <tbody>" + filas.ToString() + @"</tbody>
+  </table>
+  <div class='total-box'>
+    <span class='total-label'>Total pagado</span>
+    <span class='total-amount'>$" + total.ToString("N2") + @"</span>
+  </div>
+  <div class='footer'>
+    <p>Gracias por su compra en Milo's SVI!</p>
+    <small>" + numFactura + " · " + fechaCompleta + @"</small>
+  </div>
+</body>
+</html>";
+
+        await JS.InvokeVoidAsync("imprimirFactura", html);
     }
 
     bool cargando = true;

@@ -22,7 +22,7 @@
         overflow: hidden;
     }
 
-    /* ── Left panel ── */
+    /* ── PANEL IZQ ── */
     .login-panel-left {
         flex: 1;
         background: linear-gradient(160deg, #0a1f6e 0%, #1a4bbd 55%, #2f7bff 100%);
@@ -235,7 +235,7 @@
         font-weight: 400;
     }
 
-    /* ── Right panel ── */
+    /* ── PANEL DERECHO── */
     .login-panel-right {
         width: 460px;
         flex-shrink: 0;
@@ -345,7 +345,7 @@
         margin-top: 1px;
     }
 
-    /* Fields */
+    /* Campos  */
     .field-group {
         margin-bottom: 22px;
         animation: fadeUp 0.5s ease both;
@@ -421,7 +421,7 @@
         stroke: #1a4bbd;
     }
 
-    /* Submit button */
+    /* Boton Entrar */
     .btn-login {
         width: 100%;
         padding: 14px;
@@ -463,7 +463,7 @@
             cursor: not-allowed;
         }
 
-    /* Loading spinner inside button */
+    /* Efecto de recarga en el botón */
     .btn-inner {
         display: flex;
         align-items: center;
@@ -486,7 +486,7 @@
         }
     }
 
-    /* Footer note */
+    /* Nota del pie */
     .form-footer {
         margin-top: 30px;
         text-align: center;
@@ -494,7 +494,7 @@
         font-size: 12px;
     }
 
-    /* Responsive: stack on small screens */
+    /*Intento de responsive */
     @@media (max-width: 768px) {
         .login-root {
             flex-direction: column;
@@ -518,7 +518,7 @@
 
 <div class="login-root">
 
-    <!-- ── LEFT PANEL ── -->
+    <!-- ── PANEL IZQ ── -->
     <div class="login-panel-left">
         <div class="left-grid"></div>
         <div class="blob-mid"></div>
@@ -527,7 +527,7 @@
             <div class="brand-badge">
                 <img src="/ChatGPT Image 13 may 2026, 14_40_21.png"
                      alt="Milo's SVI"
-                     style="height: 290px; width: auto; object-fit: contain; border-radius: 10px;" />
+                     style="height: 250px; width: auto; object-fit: contain; border-radius: 10px;" />
             </div>
 
             <h1 class="left-heading">
@@ -557,7 +557,7 @@
         </div>
     </div>
 
-    <!-- ── RIGHT PANEL ── -->
+    <!-- ── PANEL DERECH ── -->
     <div class="login-panel-right">
         <div class="right-top-line"></div>
 
@@ -622,7 +622,7 @@
             </span>
         </button>
 
-        <p class="form-footer">© @DateTime.Now.Year Milo's SVI · Todos los derechos reservados</p>
+        <p class="form-footer">© @DateTime.Now.Year Milo's Store' · Todos los derechos reservados</p>
     </div>
 </div>
 @implements IDisposable

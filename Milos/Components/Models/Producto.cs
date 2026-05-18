@@ -13,6 +13,7 @@ public class Producto
     public int Stock { get; set; }
     public string? ImagenURL { get; set; }
     public int IdCategoria { get; set; }
+    public bool Activo { get; set; } = true;  // ← nuevo
 
     [ForeignKey("IdCategoria")]
     public CategoriaProducto? Categoria { get; set; }

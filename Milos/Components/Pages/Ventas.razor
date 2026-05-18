@@ -14,7 +14,7 @@
         box-sizing: border-box;
     }
 
-    /* ── Root: same background as every other page ── */
+    /* ── Mismo background ── */
     .vta-root {
         font-family: 'DM Sans', sans-serif;
         background: #f0f4ff;
@@ -23,7 +23,7 @@
         color: #0d1b4b;
     }
 
-    /* ── Animations ── */
+    /* ── Animaciones ── */
     @@keyframes fadeDown {
         from {
             opacity: 0;
@@ -92,7 +92,7 @@
         }
     }
 
-    /* ── Page header ── */
+    /* ──  header ── */
     .vta-header {
         margin-bottom: 28px;
         animation: fadeDown 0.45s ease both;
@@ -113,7 +113,7 @@
             margin: 0;
         }
 
-    /* ── Error banner ── */
+    /* ── Error  ── */
     .vta-error {
         display: flex;
         align-items: flex-start;
@@ -141,7 +141,7 @@
             margin-top: 1px;
         }
 
-    /* ── Two-column layout ── */
+    /* ──  layout dos columnas ── */
     .vta-layout {
         display: grid;
         grid-template-columns: 1fr 340px;
@@ -155,7 +155,7 @@
         gap: 16px;
     }
 
-    /* ── White panels ── */
+    /* ──  paneles blancos ── */
     .panel {
         background: white;
         border: 1px solid #e2e8f0;
@@ -177,7 +177,7 @@
         justify-content: space-between;
     }
 
-    /* ── Search ── */
+    /* ── Barra busqueda ── */
     .search-wrap {
         position: relative;
     }
@@ -220,7 +220,7 @@
             box-shadow: 0 0 0 3px rgba(26,75,189,0.1);
         }
 
-    /* ── Results dropdown ── */
+    /* ── Resultados ── */
     .results-dropdown {
         border: 1.5px solid #e2e8f0;
         border-radius: 12px;
@@ -396,7 +396,7 @@
             color: #ef4444;
         }
 
-    /* ── Empty cart ── */
+    /* ──Carrito vacio ── */
     .empty-cart {
         text-align: center;
         padding: 36px 16px;
@@ -420,7 +420,7 @@
             color: #94a3b8;
         }
 
-    /* ── Right panel (sticky) ── */
+    /* ── Panel derecho ── */
     .vta-right {
         background: white;
         border: 1px solid #e2e8f0;
@@ -439,7 +439,7 @@
         margin-bottom: 20px;
     }
 
-    /* ── Total display ── */
+    /* ──  display ── */
     .total-row {
         display: flex;
         justify-content: space-between;
@@ -465,7 +465,7 @@
         letter-spacing: -0.03em;
     }
 
-    /* ── Payment methods ── */
+    /* ── Metodos de pago ── */
     .pay-section-label {
         font-size: 12px;
         color: #64748b;
@@ -529,7 +529,7 @@
         background: #f8faff;
     }
 
-    /* ── Cash input ── */
+    /* ── Efectivo  ── */
     .cash-section {
         margin-top: 14px;
         animation: fadeUp 0.2s ease both;
@@ -592,7 +592,7 @@
         letter-spacing: -0.02em;
     }
 
-    /* ── Cobrar button ── */
+    /* ── Cobrar  ── */
     .cobrar-btn {
         width: 100%;
         padding: 15px;
@@ -652,7 +652,7 @@
             stroke-linejoin: round;
         }
 
-    /* ── Cancel button ── */
+    /* ── Cancelar ── */
     .cancel-btn {
         width: 100%;
         padding: 11px;
@@ -673,7 +673,6 @@
             color: #374151;
         }
 
-    /* ── Cart badge ── */
     .cart-badge {
         font-size: 11px;
         background: #eff6ff;
@@ -683,7 +682,7 @@
         font-weight: 600;
     }
 
-    /* ── Modal backdrop ── */
+    
     .modal-backdrop {
         position: fixed;
         inset: 0;
@@ -1002,7 +1001,7 @@
             color: #c7d7f8;
         }
 
-    /* ── Success micro-modal ── */
+    /* ── Exito ── */
     .success-mini {
         background: white;
         border-radius: 16px;
@@ -1050,7 +1049,7 @@
         margin: 0 0 22px;
     }
 
-    /* ── Responsive ── */
+    /* ── Responsive maomeno── */
     @@media (max-width: 768px) {
         .vta-root {
             padding: 20px 16px 40px;
@@ -1066,25 +1065,31 @@
     }
 
     @@media print {
-        body * {
-            visibility: hidden !important;
+        .modal-backdrop {
+            position: static !important;
+            background: none !important;
+            backdrop-filter: none !important;
+            display: block !important;
+            padding: 0 !important;
         }
 
-        #factura-print, #factura-print * {
-            visibility: visible !important;
+        .factura-modal {
+            box-shadow: none !important;
+            max-height: none !important;
+            border-radius: 0 !important;
         }
 
-        #factura-print {
-            position: fixed !important;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 2rem;
-            background: white;
-        }
-
-        .no-print {
+        .factura-toolbar {
             display: none !important;
+        }
+
+        .vta-root {
+            display: none !important;
+        }
+
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
     }
 </style>
@@ -1575,7 +1580,125 @@
         }
     }
 
-    async Task ImprimirFactura() => await JS.InvokeVoidAsync("window.print");
+    async Task ImprimirFactura()
+    {
+        var filas = new System.Text.StringBuilder();
+        foreach (var i in itemsFactura)
+        {
+            filas.Append("<tr>");
+            filas.Append("<td>");
+            filas.Append($"<div class=\"prod-name\">{i.Nombre}</div>");
+            if (i.Talla != null)
+                filas.Append($"<div class=\"prod-talla\">Talla {i.Talla}</div>");
+            filas.Append("</td>");
+            filas.Append($"<td>{i.Cantidad}</td>");
+            filas.Append($"<td>${i.PrecioUnitario:N2}</td>");
+            filas.Append($"<td>${i.Subtotal:N2}</td>");
+            filas.Append("</tr>");
+        }
+
+        var cambioHtml = "";
+        if (metodoPago == "Efectivo" && ultimoMontoPagado > 0)
+        {
+            cambioHtml = $@"<div class=""cambio-row""><span>Recibido</span><span>${ultimoMontoPagado:N2}</span></div>
+                        <div class=""cambio-row green""><span>Cambio</span><span>${ultimoCambio:N2}</span></div>";
+        }
+
+        var vendedor = string.IsNullOrEmpty(AuthState.Nombre) ? "—" : AuthState.Nombre;
+        var numFactura = facturaActual?.NumeroFactura ?? "";
+        var fecha = facturaActual?.Fecha?.ToString("dd/MM/yyyy") ?? "";
+        var hora = facturaActual?.Fecha?.ToString("HH:mm") ?? "";
+        var fechaCompleta = facturaActual?.Fecha?.ToString("dd/MM/yyyy HH:mm") ?? "";
+
+        var html = @"<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Factura " + numFactura + @"</title>
+<link href='https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap' rel='stylesheet'>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: DM Sans, sans-serif; color: #0d1b4b; padding: 32px; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.brand-bar { height: 4px; background: linear-gradient(90deg, #0a1f6e, #1a4bbd, #60a5fa); border-radius: 2px; margin-bottom: 24px; }
+.logo-wrap { text-align: center; margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1.5px solid #e8edf7; }
+.logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #0a1f6e, #2f7bff); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: Syne, sans-serif; font-size: 20px; font-weight: 800; color: white; margin: 0 auto 10px; }
+.brand-name { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: #0d1b4b; letter-spacing: -0.02em; margin: 0 0 3px; }
+.brand-sub { font-size: 12px; color: #94a3b8; margin: 0; }
+.meta { display: flex; justify-content: space-between; margin-bottom: 18px; }
+.fac-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 3px; }
+.fac-num { font-family: Syne, sans-serif; font-size: 20px; font-weight: 800; color: #0d1b4b; }
+.fac-date { font-size: 13px; font-weight: 600; color: #0d1b4b; }
+.fac-time { font-size: 11px; color: #94a3b8; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.info-cell { background: #f8faff; border: 1px solid #e8edf7; border-radius: 9px; padding: 10px 12px; }
+.info-value { font-size: 13px; font-weight: 600; color: #0d1b4b; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+thead tr { border-bottom: 2px solid #e8edf7; }
+thead th { padding: 7px 0; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; }
+thead th:first-child { text-align: left; }
+thead th:not(:first-child) { text-align: right; }
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+td { padding: 9px 0; vertical-align: middle; }
+td:not(:first-child) { text-align: right; color: #64748b; }
+td:last-child { font-weight: 700; color: #0d1b4b; }
+.prod-name { font-weight: 600; color: #0d1b4b; }
+.prod-talla { font-size: 11px; color: #94a3b8; }
+.cambio-row { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 4px; }
+.cambio-row.green { color: #16a34a; font-weight: 600; }
+.total-box { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.total-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #1e40af; }
+.total-amount { font-family: Syne, sans-serif; font-size: 22px; font-weight: 800; color: #1a4bbd; }
+.footer { text-align: center; padding-top: 16px; border-top: 1px dashed #e2e8f0; margin-top: 14px; }
+.footer p { font-size: 12px; color: #94a3b8; margin: 0 0 3px; }
+.footer small { font-size: 10px; color: #c7d7f8; }
+</style>
+</head>
+<body>
+  <div class='brand-bar'></div>
+  <div class='logo-wrap'>
+    <div class='logo-icon'>M</div>
+    <p class='brand-name'>Milo's SVI</p>
+    <p class='brand-sub'>Santa Ana, El Salvador</p>
+  </div>
+  <div class='meta'>
+    <div>
+      <div class='fac-label'>Numero de factura</div>
+      <div class='fac-num'>" + numFactura + @"</div>
+    </div>
+    <div style='text-align:right;'>
+      <div class='fac-label'>Fecha y hora</div>
+      <div class='fac-date'>" + fecha + @"</div>
+      <div class='fac-time'>" + hora + @" hrs</div>
+    </div>
+  </div>
+  <div class='info-grid'>
+    <div class='info-cell'>
+      <div class='fac-label'>Vendedor</div>
+      <div class='info-value'>" + vendedor + @"</div>
+    </div>
+    <div class='info-cell'>
+      <div class='fac-label'>Metodo de pago</div>
+      <div class='info-value'>" + metodoPago + @"</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Producto</th><th>Cant.</th><th>P. Unit.</th><th>Total</th></tr></thead>
+    <tbody>" + filas.ToString() + @"</tbody>
+  </table>
+  " + cambioHtml + @"
+  <div class='total-box'>
+    <span class='total-label'>Total pagado</span>
+    <span class='total-amount'>$" + ultimoTotal.ToString("N2") + @"</span>
+  </div>
+  <div class='footer'>
+    <p>Gracias por su compra en Milo's SVI!</p>
+    <small>" + numFactura + " · " + fechaCompleta + @"</small>
+  </div>
+</body>
+</html>";
+
+        await JS.InvokeVoidAsync("imprimirFactura", html);
+    }
 
     void NuevaVenta()
     {

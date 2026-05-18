@@ -623,6 +623,95 @@
         margin-top: 4px;
     }
 
+    /* ── Archivo histórico ── */
+    .historico-section {
+        margin-top: 40px;
+        animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    .historico-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .historico-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Syne', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: -0.01em;
+    }
+
+        .historico-title svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #94a3b8;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+    .historico-count {
+        font-size: 11px;
+        background: #f1f5f9;
+        color: #64748b;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .historico-toggle {
+        font-size: 12px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .product-card-archived {
+        opacity: 0.7;
+        border-style: dashed;
+        border-color: #e2e8f0;
+    }
+
+        .product-card-archived:hover {
+            opacity: 1;
+        }
+
+    .archived-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #64748b;
+        letter-spacing: 0.04em;
+    }
+
+    .btn-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1.5px solid #fde68a;
+    }
+
+        .btn-warning:hover {
+            background: #fef3c7;
+            transform: translateY(-1px);
+        }
+
+
     /* Alerts inside modals */
     .alert {
         display: flex;
@@ -964,34 +1053,94 @@
     </div>
 }
 
+
 <!-- ══════════════════════════════════════════════
-     MODAL — CONFIRMAR ELIMINAR
+     MODAL — CONFIRMAR ARCHIVAR / ELIMINAR
 ══════════════════════════════════════════════ -->
-@if (mostrarConfirmarEliminar)
+@if (mostrarConfirmarEliminar && productoAEliminar != null)
 {
-    <div class="modal-backdrop" @onclick="() => mostrarConfirmarEliminar = false">
+    <div class="modal-backdrop" @onclick="() => { mostrarConfirmarEliminar = false; errorEliminar = null; }">
         <div class="modal-box modal-box-sm" @onclick:stopPropagation>
-            <div class="modal-top-bar modal-top-bar-red"></div>
+            <div class="modal-top-bar" style="background:linear-gradient(90deg,#d97706,#f59e0b);"></div>
             <div class="modal-body" style="padding-top:22px;">
-                <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;">
-                    <div style="width:42px;height:42px;background:#fef2f2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6l-1 14H6L5 6" />
-                            <path d="M10 11v6M14 11v6" />
-                            <path d="M9 6V4h6v2" />
+                <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+                    <div style="width:42px;height:42px;background:#fffbeb;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 8v13H3V8" />
+                            <path d="M1 3h22v5H1z" />
+                            <path d="M10 12h4" />
                         </svg>
                     </div>
                     <div>
-                        <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#0d1b4b;margin:0 0 6px;">¿Eliminar producto?</p>
+                        <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#0d1b4b;margin:0 0 6px;">Archivar producto</p>
                         <p style="font-size:13px;color:#64748b;margin:0;line-height:1.5;">
-                            Esta acción es permanente. Se eliminará <strong style="color:#0d1b4b;">@productoAEliminar?.Nombre</strong> y no podrá recuperarse.
+                            <strong style="color:#0d1b4b;">@productoAEliminar.Nombre</strong> se moverá al Inventario Histórico y dejará de aparecer en el inventario activo. Puedes restaurarlo en cualquier momento.
                         </p>
                     </div>
                 </div>
+
+                @if (errorEliminar != null)
+                {
+                    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;padding:10px 14px;font-size:13px;color:#be123c;margin-bottom:14px;">
+                        @errorEliminar
+                    </div>
+                }
+
                 <div class="modal-footer" style="border:none;padding-top:0;margin-top:0;">
-                    <button class="btn btn-outline" @onclick="() => mostrarConfirmarEliminar = false">Cancelar</button>
-                    <button class="btn btn-exit" @onclick="ConfirmarEliminar">Eliminar definitivamente</button>
+                    <button class="btn btn-outline" @onclick="() => { mostrarConfirmarEliminar = false; errorEliminar = null; }">Cancelar</button>
+                    <button class="btn btn-warning" @onclick="ConfirmarArchivar">
+                        <svg viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+                            <path d="M21 8v13H3V8" />
+                            <path d="M1 3h22v5H1z" />
+                            <path d="M10 12h4" />
+                        </svg>
+                        Archivar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<!-- ══════════════════════════════════════════════
+     MODAL — RESTAURAR PRODUCTO ARCHIVADO
+══════════════════════════════════════════════ -->
+@if (mostrarModalRestaurar && productoARestaurar != null)
+{
+    <div class="modal-backdrop" @onclick="() => { mostrarModalRestaurar = false; stockRestaurar = 0; errorRestaurar = null; }">
+        <div class="modal-box modal-box-sm" @onclick:stopPropagation>
+            <div class="modal-top-bar modal-top-bar-green"></div>
+            <div class="modal-header">
+                <h2>Restaurar producto</h2>
+                <button class="modal-close" @onclick="() => { mostrarModalRestaurar = false; stockRestaurar = 0; errorRestaurar = null; }">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#64748b;margin:0 0 18px;line-height:1.6;">
+                    Vas a restaurar <strong style="color:#0d1b4b;">@productoARestaurar.Nombre</strong> al inventario activo. Ingresa el stock inicial con el que regresará.
+                </p>
+
+                @if (errorRestaurar != null)
+                {
+                    <div class="alert alert-error">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                        @errorRestaurar
+                    </div>
+                }
+
+                <div class="field">
+                    <label>Stock de entrada</label>
+                    <input class="inv-input" @bind="stockRestaurar" type="number" min="0" placeholder="0" style="width:100%;padding-left:14px;" />
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline" @onclick="() => { mostrarModalRestaurar = false; stockRestaurar = 0; errorRestaurar = null; }">Cancelar</button>
+                    <button class="btn btn-success" @onclick="ConfirmarRestaurar" disabled="@guardandoRestaurar">
+                        <svg viewBox="0 0 24 24" stroke="white" style="width:14px;height:14px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        @(guardandoRestaurar ? "Restaurando..." : "Restaurar al inventario")
+                    </button>
                 </div>
             </div>
         </div>
@@ -1324,9 +1473,87 @@
             }
         </div>
     }
+    <!-- ── Inventario Histórico ── -->
+    @if (productosArchivados.Any())
+    {
+        <div class="historico-section">
+            <div class="historico-header" @onclick="() => mostrarHistorico = !mostrarHistorico">
+                <div class="historico-title">
+                    <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><path d="M10 12h4" /></svg>
+                    Inventario Histórico
+                    <span class="historico-count">@productosArchivados.Count archivados</span>
+                </div>
+                <span class="historico-toggle">
+                    @(mostrarHistorico ? "Ocultar ▲" : "Mostrar ▼")
+                </span>
+            </div>
+
+            @if (mostrarHistorico)
+            {
+                <div class="inv-grid">
+                    @{
+                        int archIdx = 0;
+                    }
+                    @foreach (var p in productosArchivados)
+                    {
+                        var delay2 = archIdx * 0.04;
+                        archIdx++;
+                        <div class="product-card product-card-archived"
+                             style="animation-delay:@(delay2.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))s;">
+                            <div class="card-img" style="filter:grayscale(40%);">
+                                @if (!string.IsNullOrEmpty(p.ImagenURL))
+                                {
+                                    <img src="@p.ImagenURL" alt="@p.Nombre" />
+                                }
+                                else
+                                {
+                                    <span class="card-img-placeholder">📦</span>
+                                }
+                                <span class="archived-badge">ARCHIVADO</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-name" style="color:#64748b;">@p.Nombre</p>
+                                @if (!string.IsNullOrEmpty(p.Descripcion))
+                                {
+                                    <p class="card-desc">@p.Descripcion</p>
+                                }
+                                <div class="card-tags">
+                                    @if (!string.IsNullOrEmpty(p.Talla))
+                                    {
+                                        <span class="tag tag-size">Talla @p.Talla</span>
+                                    }
+                                    <span class="tag tag-cat">@(p.Categoria?.NombreCategoria ?? "Sin categoría")</span>
+                                </div>
+                                <div class="card-price-row">
+                                    <div>
+                                        <div class="card-price-main" style="color:#94a3b8;">$@p.PrecioUnitario.ToString("N2")</div>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button class="btn btn-success" style="font-size:12px;"
+                                            @onclick="() => AbrirModalRestaurar(p)">
+                                        <svg viewBox="0 0 24 24" stroke="white" style="width:13px;height:13px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                        Restaurar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
 </div>
 
 @code {
+    string? errorEliminar;
+
+
+
+
     // ── Movimientos ──────────────────────────
     bool mostrarModalEntrada = false;
     bool guardandoEntrada = false;
@@ -1505,7 +1732,9 @@
     {
         cargando = true;
         categorias = await Db.Categorias.ToListAsync();
-        productos = await Db.Productos.Include(p => p.Categoria).OrderBy(p => p.Nombre).ToListAsync();
+        var todos = await Db.Productos.Include(p => p.Categoria).OrderBy(p => p.Nombre).ToListAsync();
+        productos = todos.Where(p => p.Activo).ToList();
+        productosArchivados = todos.Where(p => !p.Activo).ToList();
         cargando = false;
     }
 
@@ -1590,24 +1819,89 @@
         finally { guardando = false; }
     }
 
-    void SolicitarEliminar(Producto p) { productoAEliminar = p; mostrarConfirmarEliminar = true; }
+    // ── Histórico ─────────────────────────────
+    bool mostrarHistorico = false;
+    bool mostrarModalRestaurar = false;
+    bool guardandoRestaurar = false;
+    int stockRestaurar = 0;
+    string? errorRestaurar;
+    Producto? productoARestaurar;
+    List<Producto> productosArchivados = new();
 
-    async Task ConfirmarEliminar()
+    void AbrirModalRestaurar(Producto p)
     {
-        if (productoAEliminar == null) return;
+        productoARestaurar = p;
+        stockRestaurar = 0;
+        errorRestaurar = null;
+        mostrarModalRestaurar = true;
+    }
+
+    async Task ConfirmarRestaurar()
+    {
+        if (productoARestaurar == null) return;
+        errorRestaurar = null;
+        if (stockRestaurar < 0) { errorRestaurar = "El stock no puede ser negativo."; return; }
+
+        guardandoRestaurar = true;
         try
         {
-            Db.Productos.Remove(productoAEliminar);
-            await Db.SaveChangesAsync();
+            var p = await Db.Productos.FindAsync(productoARestaurar.IdProducto);
+            if (p != null)
+            {
+                p.Activo = true;
+                p.Stock = stockRestaurar;
+
+                if (stockRestaurar > 0)
+                {
+                    Db.MovimientosInventario.Add(new MovimientoInventario
+                    {
+                        TipoMovimiento = "Entrada: Restauración de archivo",
+                        IdProducto = p.IdProducto,
+                        Cantidad = stockRestaurar,
+                        Fecha = DateTime.Now
+                    });
+                }
+
+                await Db.SaveChangesAsync();
+            }
+            mostrarModalRestaurar = false;
+            productoARestaurar = null;
+            stockRestaurar = 0;
+            await CargarDatos();
+        }
+        catch (Exception ex)
+        {
+            errorRestaurar = "Error: " + (ex.InnerException?.Message ?? ex.Message);
+        }
+        finally { guardandoRestaurar = false; }
+    }
+
+    void SolicitarEliminar(Producto p)
+    {
+        productoAEliminar = p;
+        errorEliminar = null;
+        mostrarConfirmarEliminar = true;
+    }
+
+    async Task ConfirmarArchivar()
+    {
+        if (productoAEliminar == null) return;
+        errorEliminar = null;
+        try
+        {
+            var p = await Db.Productos.FindAsync(productoAEliminar.IdProducto);
+            if (p != null)
+            {
+                p.Activo = false;
+                await Db.SaveChangesAsync();
+            }
             mostrarConfirmarEliminar = false;
             productoAEliminar = null;
             await CargarDatos();
         }
-        catch
+        catch (Exception ex)
         {
-            mostrarConfirmarEliminar = false;
-            modalError = "No se puede eliminar: el producto tiene ventas registradas.";
-            mostrarModal = false;
+            errorEliminar = "Error: " + (ex.InnerException?.Message ?? ex.Message);
         }
     }
 }
